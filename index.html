@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz do Professor — HYROX Daily WOD</title>
+  <title>Quiz HYROX Daily WOD — pra quem dá aula e pra quem treina</title>
   <meta name="description"
-    content="Quiz rápido pra professor de treino funcional: descubra quantas horas por ano você gasta montando aula e qual material resolve o seu caso.">
+    content="Quiz rápido de treino funcional no formato HYROX: dê aula ou treine, descubra quantas horas por ano você perde planejando e qual material resolve o seu caso.">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -111,7 +111,12 @@
 
     body {
       margin: 0;
+      /* Coluna com o <main> esticando: na tela de carregando, que é curta, o
+         rodapé ficava no meio do celular com um vão embaixo. */
+      display: flex;
+      flex-direction: column;
       min-height: 100vh;
+      min-height: 100dvh;
       background: var(--ink);
       color: var(--paper);
       font-family: var(--font-body);
@@ -307,7 +312,12 @@
       background: transparent;
       border: 1px solid var(--line-on-ink);
       border-radius: 3px;
-      padding: 9px 12px;
+      /* 44px é o mínimo confortável pro polegar, e este botão é usado em toda
+         pergunta. O mesmo vale pros outros alvos pequenos abaixo. */
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      padding: 9px 14px;
       cursor: pointer;
       transition: color 0.15s ease, border-color 0.15s ease;
     }
@@ -341,6 +351,10 @@
     }
 
     /* ---------- Telas ---------- */
+    .quiz-main {
+      flex: 1 0 auto;
+    }
+
     .screen {
       padding-block: clamp(36px, 7vw, 80px);
     }
@@ -433,11 +447,24 @@
     .intro__visual {
       position: relative;
       margin: 0;
-      border-radius: 6px;
+      border-radius: 8px;
       overflow: hidden;
       aspect-ratio: 16 / 10;
       max-width: 100%;
       background: var(--ink-2);
+      border: 1px solid rgba(255, 75, 31, 0.35);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 35px rgba(255, 75, 31, 0.2);
+    }
+
+    .intro__visual::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: var(--ember);
+      z-index: 2;
     }
 
     @media (min-width: 900px) {
@@ -446,36 +473,62 @@
       }
     }
 
-    .intro__visual img {
+    .intro__visual img,
+    .intro__visual video {
+      display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
 
-    .intro__visual::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(14, 13, 8, 0) 50%, rgba(14, 13, 8, 0.75) 100%);
-    }
-
     .intro__tag {
       position: absolute;
-      left: 16px;
-      bottom: 16px;
-      z-index: 1;
+      top: 18px;
+      left: 18px;
+      z-index: 2;
       display: inline-flex;
       align-items: center;
       gap: 8px;
       font-family: var(--font-mono);
-      font-size: 0.66rem;
+      font-size: 0.68rem;
       font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      background: rgba(14, 13, 8, 0.8);
-      border: 1px solid var(--line-on-ink);
+      color: var(--paper);
+      background: rgba(14, 13, 8, 0.55);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(236, 231, 222, 0.18);
       border-radius: 999px;
-      padding: 7px 12px;
+      padding: 6px 12px;
+    }
+
+    .intro__caption {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 28px 22px 18px;
+      background: linear-gradient(180deg, rgba(23, 22, 15, 0) 0%, rgba(14, 13, 8, 0.85) 78%);
+    }
+
+    .intro__caption::before {
+      content: "";
+      width: 20px;
+      height: 2px;
+      background: var(--ember);
+      flex-shrink: 0;
+    }
+
+    .intro__caption span {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--paper);
     }
 
     .dot {
@@ -595,6 +648,105 @@
       font-weight: 400;
       color: rgba(236, 231, 222, 0.55);
       margin-top: 2px;
+    }
+
+    .q__grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    @media (min-width: 900px) {
+      .q__grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+        gap: 44px;
+        align-items: start;
+      }
+    }
+
+    /* No celular é uma faixa curta acima da pergunta: aparece sem empurrar as
+       opções pra fora da tela. Em tela grande vira a coluna da direita. */
+    .qmedia {
+      position: relative;
+      order: -1;
+      margin: 0;
+      aspect-ratio: 16 / 7;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--ink-2);
+      border: 1px solid rgba(255, 75, 31, 0.35);
+      box-shadow: 0 16px 34px rgba(0, 0, 0, 0.55), 0 0 30px rgba(255, 75, 31, 0.18);
+    }
+
+    @media (min-width: 900px) {
+      .qmedia {
+        order: 0;
+        aspect-ratio: 4 / 5;
+        position: sticky;
+        top: 96px;
+      }
+    }
+
+    .qmedia::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--ember);
+      z-index: 2;
+    }
+
+    .qmedia__still,
+    .qmedia__video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* O vídeo entra por cima do still só depois de começar a tocar: sem isso
+       a troca de pergunta pisca preto no meio do caminho. */
+    .qmedia__video {
+      opacity: 0;
+      transition: opacity 0.45s ease;
+    }
+
+    .qmedia.is-playing .qmedia__video {
+      opacity: 1;
+    }
+
+    .qmedia__cap {
+      display: none;
+    }
+
+    @media (min-width: 900px) {
+      .qmedia__cap {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 26px 18px 14px;
+        background: linear-gradient(180deg, rgba(23, 22, 15, 0) 0%, rgba(14, 13, 8, 0.85) 78%);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--paper);
+      }
+
+      .qmedia__cap::before {
+        content: "";
+        width: 18px;
+        height: 2px;
+        background: var(--ember);
+        flex-shrink: 0;
+      }
     }
 
     .q__hint {
@@ -966,6 +1118,254 @@
     }
 
     /* ---------- Prova: página real do material ---------- */
+    /* ---------- Pacote completo ---------- */
+    .bundle {
+      margin-top: 18px;
+      display: grid;
+      border: 1px solid rgba(255, 75, 31, 0.4);
+      border-radius: 10px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(255, 75, 31, 0.08), rgba(255, 75, 31, 0) 55%),
+        var(--ink-2);
+      box-shadow: 0 0 30px rgba(255, 75, 31, 0.12);
+    }
+
+    @media (min-width: 760px) {
+      .bundle {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 290px);
+      }
+    }
+
+    .bundle__copy {
+      padding: clamp(18px, 3.4vw, 26px);
+    }
+
+    .bundle__eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 10px;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ember);
+    }
+
+    .bundle__title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+      line-height: 1;
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      margin: 0 0 10px;
+    }
+
+    .bundle__desc {
+      margin: 0 0 16px;
+      color: rgba(236, 231, 222, 0.78);
+      font-size: 0.95rem;
+    }
+
+    .bundle__bullets {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 9px;
+      font-size: 0.92rem;
+    }
+
+    .bundle__bullets li {
+      display: flex;
+      gap: 10px;
+    }
+
+    .bundle__bullets .icon {
+      flex: none;
+      width: 17px;
+      height: 17px;
+      color: var(--ember);
+      margin-top: 2px;
+    }
+
+    .bundle__stack {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line-on-ink);
+    }
+
+    .bundle__stack-label {
+      margin: 0 0 10px;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(236, 231, 222, 0.45);
+    }
+
+    .bundle__stack-row {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .bundle__item {
+      margin: 0;
+      min-width: 0;
+    }
+
+    .bundle__item img {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid var(--line-on-ink);
+      display: block;
+    }
+
+    /* As quatro capas nascem empilhadas no meio, como um maço, e se abrem em
+       leque quando o bloco chega na tela: os 4 materiais virando um acesso só.
+       Elas só andam pra dentro da própria faixa — nada escapa pro lado. O
+       "armado" vem do JS: sem ele as capas ficam visíveis do jeito normal. */
+    .bundle__stack.is-armed .bundle__item {
+      opacity: 0;
+    }
+
+    .bundle__stack.is-armed.is-in .bundle__item {
+      animation: bundleDeal 0.62s cubic-bezier(0.22, 0.85, 0.2, 1) both;
+    }
+
+    .bundle__stack.is-armed.is-in .bundle__item:nth-child(1) {
+      --dx: 156%;
+      --rot: -7deg;
+    }
+
+    .bundle__stack.is-armed.is-in .bundle__item:nth-child(2) {
+      --dx: 52%;
+      --rot: -3deg;
+      animation-delay: 0.07s;
+    }
+
+    .bundle__stack.is-armed.is-in .bundle__item:nth-child(3) {
+      --dx: -52%;
+      --rot: 3deg;
+      animation-delay: 0.14s;
+    }
+
+    .bundle__stack.is-armed.is-in .bundle__item:nth-child(4) {
+      --dx: -156%;
+      --rot: 7deg;
+      animation-delay: 0.21s;
+    }
+
+    @keyframes bundleDeal {
+      from {
+        opacity: 0;
+        transform: translateX(var(--dx, 0)) translateY(10px) rotate(var(--rot, 0deg)) scale(0.88);
+      }
+
+      55% {
+        opacity: 1;
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0) translateY(0) rotate(0) scale(1);
+      }
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .bundle__item img {
+        transition: transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+      }
+
+      .bundle__item:hover img {
+        transform: translateY(-6px) scale(1.03);
+        border-color: rgba(255, 75, 31, 0.55);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.55);
+      }
+    }
+
+    .bundle__item figcaption {
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(236, 231, 222, 0.5);
+      overflow-wrap: anywhere;
+    }
+
+    .bundle__buy {
+      padding: clamp(18px, 3.4vw, 26px);
+      border-top: 1px solid var(--line-on-ink);
+      background: rgba(14, 13, 8, 0.4);
+    }
+
+    @media (min-width: 760px) {
+      .bundle__buy {
+        border-top: 0;
+        border-left: 1px solid var(--line-on-ink);
+        /* A coluna da esquerda é mais alta: sem isto o preço fica pendurado no
+           topo, com um vão embaixo do botão. */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+    }
+
+    .bundle__label {
+      margin: 0 0 8px;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(236, 231, 222, 0.5);
+    }
+
+    .bundle__price {
+      display: grid;
+      gap: 2px;
+      margin-bottom: 12px;
+    }
+
+    .bundle__price .was {
+      font-size: 0.8rem;
+      color: rgba(236, 231, 222, 0.5);
+    }
+
+    .bundle__price .amount {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(2rem, 6vw, 2.6rem);
+      line-height: 1;
+      color: var(--ember);
+    }
+
+    .bundle__price .terms,
+    .bundle__price .per {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(236, 231, 222, 0.55);
+    }
+
+    .bundle__save {
+      margin: 0 0 14px;
+      font-size: 0.86rem;
+      color: rgba(236, 231, 222, 0.8);
+    }
+
+    .bundle__save strong {
+      color: var(--paper);
+    }
+
     .proof {
       margin: 0;
       background: var(--ink-2);
@@ -1028,6 +1428,9 @@
       color: var(--rope);
       background: transparent;
       border: 0;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
       padding: 6px 0;
       cursor: pointer;
       text-decoration: underline;
@@ -1110,6 +1513,9 @@
       color: rgba(236, 231, 222, 0.62);
       background: transparent;
       border: 0;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
       padding: 8px 0;
       cursor: pointer;
       text-decoration: underline;
@@ -1186,8 +1592,8 @@
       position: absolute;
       top: 14px;
       right: 14px;
-      width: 38px;
-      height: 38px;
+      width: 44px;
+      height: 44px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -1276,6 +1682,7 @@
     }
 
     .flash__keep {
+      min-height: 44px;
       font-family: var(--font-mono);
       font-size: 0.76rem;
       color: rgba(236, 231, 222, 0.55);
@@ -1289,6 +1696,17 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
+
+      .bundle__stack.is-armed .bundle__item,
+      .bundle__stack.is-armed.is-in .bundle__item {
+        opacity: 1;
+        animation: none;
+      }
+
+      .bundle__item:hover img {
+        transform: none;
+      }
+
 
       .screen.is-entering,
       .dot {
@@ -1397,39 +1815,54 @@
     <div class="qprogress" aria-hidden="true"><span class="qprogress__fill" id="qFill"></span></div>
   </header>
 
-  <main id="quiz">
+  <main id="quiz" class="quiz-main">
 
     <!-- ── Intro ─────────────────────────────────────────────── -->
     <section class="screen" id="sIntro">
       <div class="container container--wide intro">
         <div>
-          <p class="eyebrow">Quiz pra quem dá aula de treino funcional</p>
-          <h1 class="intro__title">Quantas horas por ano você gasta <em>montando aula?</em></h1>
-          <p class="intro__desc">Até 7 perguntas rápidas sobre como você planeja hoje. No final, você vê a conta
-            do tempo que vai embora e qual material resolve o seu caso.</p>
+          <p class="eyebrow">Quiz pra quem vive treino funcional</p>
+          <h1 class="intro__title">Quantas horas por ano você perde <em>antes do treino começar?</em></h1>
+          <p class="intro__desc">Até 8 perguntas rápidas — e o quiz muda se você dá aula ou se você treina. No
+            final, você vê a conta do tempo que vai embora e qual material resolve o seu caso.</p>
           <ol class="intro__gets">
-            <li><span>01</span>Seu perfil de planejamento</li>
-            <li><span>02</span>As horas por ano gastas montando treino</li>
-            <li><span>03</span>O material certo pra sua turma</li>
+            <li><span>01</span>Seu perfil</li>
+            <li><span>02</span>As horas por ano que você perde planejando</li>
+            <li><span>03</span>O material certo pro seu caso</li>
           </ol>
           <button type="button" class="btn btn--primary btn--lg" id="startBtn">Começar o quiz</button>
           <p class="intro__meta">Grátis · Menos de 1 minuto · Sem cadastro</p>
         </div>
         <figure class="intro__visual">
-          <img src="assets/images/colt-training.webp" alt="Aula de treino funcional em estações" fetchpriority="high">
-          <figcaption class="intro__tag"><span class="dot"></span>Feito pra aula no formato HYROX</figcaption>
+          <span class="intro__tag"><span class="dot"></span>Cena real de aula</span>
+          <video id="introVideo" loop muted playsinline preload="none"
+            poster="assets/images/quiz/q-prova.webp" aria-label="Treino funcional em estações no formato HYROX">
+            <source src="assets/videos/q-prova.mp4" type="video/mp4">
+            <img src="assets/images/quiz/q-prova.webp" alt="Treino funcional em estações">
+          </video>
+          <figcaption class="intro__caption"><span>Sem atores. Sem estúdio.</span></figcaption>
         </figure>
       </div>
     </section>
 
     <!-- ── Pergunta (uma tela reaproveitada para todas) ─────────── -->
     <section class="screen" id="sQuestion" hidden>
-      <div class="container">
-        <p class="eyebrow" id="qNum"></p>
-        <h2 class="q__title" id="qTitle" tabindex="-1"></h2>
-        <p class="q__help" id="qHelp"></p>
-        <div class="opts" id="qOpts" role="group" aria-labelledby="qTitle"></div>
-        <p class="q__hint">Toque numa opção pra seguir</p>
+      <div class="container container--wide q__grid">
+        <div class="q__col">
+          <p class="eyebrow" id="qNum"></p>
+          <h2 class="q__title" id="qTitle" tabindex="-1"></h2>
+          <p class="q__help" id="qHelp"></p>
+          <div class="opts" id="qOpts" role="group" aria-labelledby="qTitle"></div>
+          <p class="q__hint">Toque numa opção pra seguir</p>
+        </div>
+
+        <!-- Decorativa: o still carrega sempre e o vídeo só entra por cima em
+             tela grande, onde o tráfego não é de dados móveis. -->
+        <figure class="qmedia" id="qMedia" aria-hidden="true">
+          <img class="qmedia__still" id="qMediaImg" src="assets/images/quiz/q-dupla.webp" alt="">
+          <video class="qmedia__video" id="qMediaVideo" muted loop playsinline preload="none"></video>
+          <figcaption class="qmedia__cap" id="qMediaCap"></figcaption>
+        </figure>
       </div>
     </section>
 
@@ -1441,7 +1874,8 @@
         <ul class="load__list" id="loadList">
           <li class="load__item"><span class="load__mark"><svg class="icon">
                 <use href="#icon-check" />
-              </svg></span>Somando suas horas de planejamento</li>
+              </svg></span><span data-alt="Somando o tempo que some antes do treino">Somando suas horas de
+            planejamento</span></li>
           <li class="load__item"><span class="load__mark"><svg class="icon">
                 <use href="#icon-check" />
               </svg></span>Identificando o seu perfil</li>
@@ -1458,7 +1892,7 @@
          abre, e um link criado depois pelo JS sairia sem os utm_*. -->
     <section class="screen" id="sResult" hidden>
       <div class="container">
-        <p class="eyebrow">Seu perfil de planejamento</p>
+        <p class="eyebrow" id="resEyebrow">Seu perfil de planejamento</p>
         <h2 class="res__profile" id="resProfile" tabindex="-1"></h2>
         <p class="res__diag" id="resDiag"></p>
 
@@ -1481,12 +1915,13 @@
                 <img src="assets/images/oferta_250_pag_.jpg" alt="250 Aulas Prontas Daily WOD" loading="lazy">
               </div>
               <div class="card__body">
-                <p class="card__label">Para aplicar amanhã</p>
+                <p class="card__label" data-alt="Pra treinar amanhã">Para aplicar amanhã</p>
                 <h4 class="card__title">250 Aulas Prontas</h4>
                 <p class="card__sub">Daily WOD · acesso digital imediato</p>
                 <div class="card__price">
-                  <span class="amount">R$ 47,00</span>
-                  <span class="terms">pagamento único · ≈ R$ 0,19 por aula</span>
+                  <span class="amount">R$ 69,90</span>
+                  <span class="terms" data-alt="pagamento único · ≈ R$ 0,28 por treino">pagamento único · ≈ R$ 0,28
+                    por aula</span>
                 </div>
                 <p class="card__why" data-why></p>
                 <ul class="card__bullets">
@@ -1498,14 +1933,16 @@
                     </svg>Aquecimento, bloco técnico, bloco principal e arrefecimento, linha a linha</li>
                   <li><svg class="icon">
                       <use href="#icon-check" />
-                    </svg>3 níveis de adaptação em cada aula</li>
+                    </svg><span data-alt="3 níveis em cada treino — escolha o seu e suba de nível">3 níveis de
+                      adaptação em cada aula</span></li>
                   <li><svg class="icon">
                       <use href="#icon-check" />
-                    </svg>Frase de coaching e erro a vigiar, com a correção</li>
+                    </svg><span data-alt="O erro a vigiar em cada movimento, com a correção">Frase de coaching e erro
+                      a vigiar, com a correção</span></li>
                 </ul>
                 <a href="https://pay.wiapy.com/U6bj94wsQRBZ" class="btn btn--primary btn--block" target="_blank"
-                  rel="noopener" data-checkout="250 Aulas Prontas" data-sku="250-aulas" data-price="47.00">Quero as
-                  250 Aulas — R$47</a>
+                  rel="noopener" data-checkout="250 Aulas Prontas" data-sku="250-aulas" data-price="69.90">Quero as
+                  250 Aulas — R$69,90</a>
                 <p class="trust-line"><svg class="icon">
                     <use href="#icon-shield" />
                   </svg>Pagamento único · Acesso imediato · 7 dias de garantia</p>
@@ -1518,18 +1955,19 @@
                 <img src="assets/images/oferta_150_pag.jpg" alt="HYROX Master Class, 150 páginas" loading="lazy">
               </div>
               <div class="card__body">
-                <p class="card__label">Para fundamentar sua aula</p>
+                <p class="card__label" data-alt="Pra entender o seu treino">Para fundamentar sua aula</p>
                 <h4 class="card__title">HYROX Master Class</h4>
                 <p class="card__sub">150 páginas · PDF digital</p>
                 <div class="card__price">
-                  <span class="amount">R$ 20,00</span>
+                  <span class="amount">R$ 30,00</span>
                   <span class="terms">pagamento único</span>
                 </div>
                 <p class="card__why" data-why></p>
                 <ul class="card__bullets">
                   <li><svg class="icon">
                       <use href="#icon-check" />
-                    </svg>Fisiologia do treino funcional aplicada à aula</li>
+                    </svg><span data-alt="Fisiologia do treino funcional aplicada ao seu treino">Fisiologia do treino
+                      funcional aplicada à aula</span></li>
                   <li><svg class="icon">
                       <use href="#icon-check" />
                     </svg>Periodização e progressão de carga</li>
@@ -1538,17 +1976,87 @@
                     </svg>Prevenção de lesões: o que vigiar na execução</li>
                   <li><svg class="icon">
                       <use href="#icon-check" />
-                    </svg>Como dosar a intensidade pro objetivo de cada aluno</li>
+                    </svg><span data-alt="Como dosar a intensidade pro seu objetivo">Como dosar a intensidade pro
+                      objetivo de cada aluno</span></li>
                 </ul>
                 <a href="https://pay.wiapy.com/9lM9WBd8VNFt" class="btn btn--primary btn--block" target="_blank"
-                  rel="noopener" data-checkout="HYROX Master Class" data-sku="master-class" data-price="20.00">Quero
-                  a Master Class — R$20</a>
+                  rel="noopener" data-checkout="HYROX Master Class" data-sku="master-class" data-price="30.00">Quero
+                  a Master Class — R$30</a>
                 <p class="trust-line"><svg class="icon">
                     <use href="#icon-shield" />
                   </svg>Pagamento único · Acesso imediato · 7 dias de garantia</p>
               </div>
             </article>
           </div>
+
+          <!-- Pacote completo: um bloco largo embaixo dos dois cartões, não um
+               terceiro cartão — é a saída de quem já decidiu levar tudo, e sai
+               mais barato que as 250 Aulas sozinhas. -->
+          <article class="bundle">
+            <div class="bundle__copy">
+              <p class="bundle__eyebrow"><span class="dot"></span>Começo de mês · leve tudo</p>
+              <h4 class="bundle__title">Pacote Completo</h4>
+              <p class="bundle__desc"
+                data-alt="Todo o material num acesso só: o ano inteiro de treino pronto, a base técnica por trás dele e os materiais de metodologia e programação.">
+                Todo o material num acesso só: o ano inteiro de aula pronta, a base técnica por trás dela e os
+                materiais de metodologia e programação.</p>
+              <ul class="bundle__bullets">
+                <li><svg class="icon">
+                    <use href="#icon-check" />
+                  </svg><span><strong>250 Aulas Prontas</strong> — o ano inteiro periodizado, em PDF</span></li>
+                <li><svg class="icon">
+                    <use href="#icon-check" />
+                  </svg><span><strong>HYROX Master Class</strong> — 150 páginas de base técnica, em PDF</span></li>
+                <li><svg class="icon">
+                    <use href="#icon-check" />
+                  </svg><span><strong>Metodologia e programação</strong> — os materiais de apoio pra quem
+                    conduz o treino</span></li>
+                <li><svg class="icon">
+                    <use href="#icon-check" />
+                  </svg><span><strong>Acompanhamento</strong> — opção de ajuste ao longo da evolução</span></li>
+              </ul>
+              <div class="bundle__stack">
+                <p class="bundle__stack-label">4 materiais · um acesso só</p>
+                <div class="bundle__stack-row">
+                  <figure class="bundle__item">
+                    <img src="assets/images/previews/wod-01-capa.jpg" alt="Capa de 250 Aulas Prontas" loading="lazy">
+                    <figcaption>250 Aulas</figcaption>
+                  </figure>
+                  <figure class="bundle__item">
+                    <img src="assets/images/previews/mc-01-capa.jpg" alt="Capa da HYROX Master Class" loading="lazy">
+                    <figcaption>Master Class</figcaption>
+                  </figure>
+                  <figure class="bundle__item">
+                    <img src="assets/images/previews/bonus-coach-01-capa.jpg" alt="Capa do Manual do Coach"
+                      loading="lazy">
+                    <figcaption>Manual do Coach</figcaption>
+                  </figure>
+                  <figure class="bundle__item">
+                    <img src="assets/images/previews/bonus-plano-01-capa.jpg" alt="Capa do Plano de 12 Semanas"
+                      loading="lazy">
+                    <figcaption>12 Semanas</figcaption>
+                  </figure>
+                </div>
+              </div>
+            </div>
+
+            <div class="bundle__buy">
+              <p class="bundle__label">Levando tudo de uma vez</p>
+              <div class="bundle__price">
+                <span class="was">Os dois avulsos: <s>R$ 99,90</s></span>
+                <span class="amount">R$ 47,00</span>
+                <span class="terms">pagamento único</span>
+                <span class="per" data-alt="≈ R$ 0,19 por treino">≈ R$ 0,19 por aula</span>
+              </div>
+              <p class="bundle__save">Economia de <strong>R$ 52,90</strong></p>
+              <a href="https://pay.wiapy.com/Fu2rlVC8hN8e" class="btn btn--primary btn--block" target="_blank"
+                rel="noopener" data-checkout="Pacote Completo" data-sku="pacote-completo" data-price="47.00">Quero o
+                Pacote Completo — R$47</a>
+              <p class="trust-line"><svg class="icon">
+                  <use href="#icon-shield" />
+                </svg>Pagamento único · Acesso imediato · 7 dias de garantia</p>
+            </div>
+          </article>
         </div>
 
         <div class="res__block">
@@ -1570,7 +2078,8 @@
             <svg class="icon">
               <use href="#icon-shield" />
             </svg>
-            <p><strong>Garantia incondicional de 7 dias</strong> em qualquer um dos dois materiais. Se não fizer
+            <p data-alt=" em qualquer um dos materiais. Se não fizer sentido pro seu treino, devolvemos o valor.">
+              <strong>Garantia incondicional de 7 dias</strong> em qualquer um dos materiais. Se não fizer
               sentido pra sua aula, devolvemos o valor.</p>
           </div>
         </div>
@@ -1579,11 +2088,12 @@
           <div class="leadbox">
             <div>
               <h3 class="leadbox__title">Prefere testar antes?</h3>
-              <p>Receba uma aula completa de graça no WhatsApp e aplique na sua turma antes de gastar um real.</p>
+              <p data-alt="Receba um treino completo de graça no WhatsApp e faça antes de gastar um real.">Receba uma
+                aula completa de graça no WhatsApp e aplique na sua turma antes de gastar um real.</p>
             </div>
             <a href="#" class="btn btn--whats" id="leadWhats" target="_blank" rel="noopener"><svg class="icon">
                 <use href="#icon-whatsapp" />
-              </svg>Receber aula grátis</a>
+              </svg><span data-alt="Receber treino grátis">Receber aula grátis</span></a>
           </div>
         </div>
 
@@ -1609,7 +2119,7 @@
     </div>
   </footer>
 
-  <!-- Upsell disparado quando o visitante clica na oferta de R$20 -->
+  <!-- Upsell disparado quando o visitante clica na oferta da Master Class -->
   <div class="flash" id="flashOffer" role="dialog" aria-modal="true" aria-labelledby="flashTitle" aria-hidden="true">
     <div class="flash__dialog">
       <button class="flash__close" id="flashClose" type="button" aria-label="Fechar">
@@ -1619,20 +2129,22 @@
       </button>
       <p class="flash__eyebrow"><span class="dot"></span>Oferta Relâmpago</p>
       <h2 class="flash__title" id="flashTitle">250 Aulas Prontas</h2>
-      <p class="flash__text">A Master Class te dá o porquê. Estas 250 aulas te dão o que aplicar amanhã — uma pra cada
+      <p class="flash__text"
+        data-alt="A Master Class te dá o porquê. Estes 250 treinos te dão o que fazer amanhã — um pra cada dia útil do ano, já periodizados. Esse preço só aparece aqui.">A
+        Master Class te dá o porquê. Estas 250 aulas te dão o que aplicar amanhã — uma pra cada
         dia útil do ano, já periodizadas. Esse preço só aparece aqui.</p>
       <div class="flash__price">
-        <span class="flash__price-old">R$ 47,00</span>
-        <span class="flash__price-new">R$ 30,00</span>
-        <span class="flash__price-off">-36%</span>
+        <span class="flash__price-old">R$ 69,90</span>
+        <span class="flash__price-new">R$ 35,00</span>
+        <span class="flash__price-off">-50%</span>
       </div>
       <div class="flash__actions">
         <a href="https://pay.wiapy.com/yqiMIvT_YOih" class="btn btn--primary btn--block" id="flashTake" target="_blank"
           rel="noopener" data-checkout="250 Aulas Prontas — Oferta Relâmpago" data-sku="250-aulas-relampago"
-          data-price="30.00">Quero as 250 Aulas — R$30</a>
+          data-price="35.00">Quero as 250 Aulas — R$35</a>
         <a href="https://pay.wiapy.com/9lM9WBd8VNFt" class="flash__keep" id="flashKeep" target="_blank" rel="noopener"
-          data-checkout="HYROX Master Class" data-sku="master-class" data-price="20.00">Continuar com a Master Class —
-          R$20</a>
+          data-checkout="HYROX Master Class" data-sku="master-class" data-price="30.00">Continuar com a Master Class —
+          R$30</a>
       </div>
     </div>
   </div>
@@ -1644,11 +2156,29 @@
          a lógica do resultado, então o texto pode ser reescrito à vontade
          sem quebrar nada. skipIf esconde perguntas que não fazem sentido
          para quem ainda não dá aula. */
-      var notTeaching = function (a) { return a.local === 'comecando'; };
+      var isProf = function (a) { return a.perfil === 'professor'; };
+      var isAluno = function (a) { return a.perfil === 'aluno'; };
+      /* soProf esconde a pergunta de quem treina; soAluno, de quem dá aula. */
+      var soProf = function (a) { return !isProf(a); };
+      var soAluno = function (a) { return !isAluno(a); };
+      var notTeaching = function (a) { return !isProf(a) || a.local === 'comecando'; };
+      var notTraining = function (a) { return !isAluno(a) || a.onde === 'parei'; };
 
       var QUESTIONS = [
         {
+          id: 'perfil',
+          title: 'Você dá aula ou você treina?',
+          help: 'O resto do quiz muda conforme a sua resposta.',
+          options: [
+            { id: 'professor', label: 'Dou aula', note: 'Professor, personal ou treinador' },
+            { id: 'aluno', label: 'Eu treino', note: 'Faço aula ou treino por conta' }
+          ]
+        },
+
+        /* ── Caminho de quem dá aula ──────────────────────────────── */
+        {
           id: 'local',
+          skipIf: soProf,
           title: 'Onde você dá aula hoje?',
           help: 'Escolha o que mais se parece com a sua rotina.',
           options: [
@@ -1685,6 +2215,7 @@
         },
         {
           id: 'metodo',
+          skipIf: soProf,
           title: 'Como você monta a aula hoje?',
           options: [
             { id: 'improviso', label: 'Na hora, com o que vem na cabeça' },
@@ -1695,6 +2226,7 @@
         },
         {
           id: 'hyrox',
+          skipIf: soProf,
           title: 'Qual a sua relação com o HYROX?',
           options: [
             { id: 'nunca', label: 'Conheço pouco', note: 'Nunca apliquei na aula' },
@@ -1705,6 +2237,7 @@
         },
         {
           id: 'dor',
+          skipIf: soProf,
           title: 'O que mais trava a sua aula hoje?',
           options: [
             { id: 'repetir', label: 'Variar o treino sem repetir' },
@@ -1715,10 +2248,96 @@
         },
         {
           id: 'quer',
+          skipIf: soProf,
           title: 'O que resolveria primeiro pra você?',
           options: [
             { id: 'pronta', label: 'Ter a aula pronta pra aplicar amanhã' },
             { id: 'base', label: 'Entender a base técnica por trás das escolhas' },
+            { id: 'ambos', label: 'Os dois' }
+          ]
+        },
+
+        /* ── Caminho de quem treina ───────────────────────────────────
+           Ids próprios (onde, jeito, hyroxA…) em vez de reaproveitar os do
+           professor: assim cada público chega ao pixel separado, e trocar a
+           resposta da pergunta 01 não mistura as duas trilhas. */
+        {
+          id: 'onde',
+          skipIf: soAluno,
+          title: 'Onde você treina hoje?',
+          help: 'Escolha o que mais se parece com a sua rotina.',
+          options: [
+            { id: 'box', label: 'Box de CrossFit' },
+            { id: 'academia', label: 'Academia de treino funcional' },
+            { id: 'personal', label: 'Com personal trainer' },
+            { id: 'casa', label: 'Em casa ou ao ar livre' },
+            { id: 'parei', label: 'Parei de treinar', note: 'Quero voltar agora' }
+          ]
+        },
+        {
+          id: 'treinos',
+          skipIf: notTraining,
+          title: 'Quantas vezes por semana você treina?',
+          help: 'Na média das últimas semanas, sem enfeitar.',
+          options: [
+            { id: '1a2', label: '1 ou 2 vezes' },
+            { id: '3a4', label: '3 ou 4 vezes' },
+            { id: '5a6', label: '5 ou 6 vezes' },
+            { id: 'todo', label: 'Todo dia' }
+          ]
+        },
+        {
+          id: 'minutos',
+          skipIf: notTraining,
+          title: 'Quanto tempo você perde decidindo o que fazer no treino?',
+          help: 'Antes de começar de fato: pensando, procurando, rolando o feed.',
+          options: [
+            { id: 'menos5', label: 'Menos de 5 minutos' },
+            { id: '5a15', label: 'De 5 a 15 minutos' },
+            { id: '15a30', label: 'De 15 a 30 minutos' },
+            { id: 'mais30', label: 'Mais de 30', note: 'Às vezes o treino nem sai direito' }
+          ]
+        },
+        {
+          id: 'jeito',
+          skipIf: soAluno,
+          title: 'Como você decide o treino do dia?',
+          options: [
+            { id: 'improviso', label: 'Chego e vejo na hora' },
+            { id: 'insta', label: 'Sigo o que vejo no Instagram ou YouTube' },
+            { id: 'app', label: 'Uso um app genérico' },
+            { id: 'guiado', label: 'Tenho planilha ou personal' }
+          ]
+        },
+        {
+          id: 'hyroxA',
+          skipIf: soAluno,
+          title: 'Qual a sua relação com o HYROX?',
+          options: [
+            { id: 'nunca', label: 'Só ouvi falar' },
+            { id: 'quero', label: 'Quero fazer minha primeira prova' },
+            { id: 'inscrito', label: 'Já tenho prova marcada' },
+            { id: 'competi', label: 'Já competi e quero baixar meu tempo' }
+          ]
+        },
+        {
+          id: 'dorA',
+          skipIf: soAluno,
+          title: 'O que mais trava o seu treino hoje?',
+          options: [
+            { id: 'oquefazer', label: 'Não saber o que fazer no dia' },
+            { id: 'estagnou', label: 'Travei — não evoluo mais' },
+            { id: 'constancia', label: 'Constância: começo e paro' },
+            { id: 'lesao', label: 'Dor ou medo de lesão' }
+          ]
+        },
+        {
+          id: 'querA',
+          skipIf: soAluno,
+          title: 'O que resolveria primeiro pra você?',
+          options: [
+            { id: 'pronto', label: 'Ter o treino pronto pra executar amanhã' },
+            { id: 'base', label: 'Entender o porquê de cada escolha' },
             { id: 'ambos', label: 'Os dois' }
           ]
         }
@@ -1729,6 +2348,42 @@
          precisa ser defensável. */
       var HOURS_PER_WEEK = { menos1: 0.5, '1a3': 2, '3a5': 4, mais5: 6 };
       var WORK_WEEKS = 48;
+
+      /* A mesma conta do professor, na moeda de quem treina: minutos perdidos
+         por treino × treinos por semana. Ponto médio de cada faixa. */
+      var MIN_PER_SESSION = { menos5: 3, '5a15': 10, '15a30': 22, mais30: 40 };
+      var SESSIONS_PER_WEEK = { '1a2': 1.5, '3a4': 3.5, '5a6': 5.5, todo: 7 };
+
+      /* Textos que mudam de público. O resto da tela de resultado é igual
+         pros dois: o que muda é de quem é o tempo perdido. */
+      var COPY = {
+        professor: {
+          resEyebrow: 'Seu perfil de planejamento',
+          statYear: 'por ano montando aula',
+          statDays: 'dias de trabalho de 8 horas',
+          statPrice: 'por aula nas 250 Aulas Prontas',
+          fallback: [['250', 'aulas prontas pro ano inteiro'], ['10', 'mesociclos de 5 semanas']],
+          formula: function (r) { return fmt(r.hoursWeek) + ' h/semana × ' + WORK_WEEKS + ' semanas'; },
+          waMsg: function (perfil) {
+            return 'Oi! Fiz o quiz do HYROX Daily WOD e deu o perfil "' + perfil +
+              '". Queria receber a aula-modelo gratuita.';
+          }
+        },
+        aluno: {
+          resEyebrow: 'Seu perfil de treino',
+          statYear: 'por ano só decidindo o que treinar',
+          statDays: 'dias inteiros de 8 horas',
+          statPrice: 'por treino nas 250 Aulas Prontas',
+          fallback: [['250', 'treinos prontos pro ano inteiro'], ['10', 'mesociclos de 5 semanas']],
+          formula: function (r) {
+            return r.minPer + ' min × ' + fmt(r.sessions) + ' treinos/semana × ' + WORK_WEEKS + ' semanas';
+          },
+          waMsg: function (perfil) {
+            return 'Oi! Fiz o quiz do HYROX Daily WOD e deu o perfil "' + perfil +
+              '". Queria receber o treino-modelo gratuito.';
+          }
+        }
+      };
 
       var PROFILES = {
         improviso: {
@@ -1758,6 +2413,34 @@
         }
       };
 
+      var PROFILES_A = {
+        improviso: {
+          name: 'Treino de <em>improviso</em>',
+          plain: 'Treino de improviso',
+          diag: 'Você decide o treino no meio do aquecimento. Dá pra suar, mas sem uma progressão de uma semana pra outra o corpo não tem motivo pra evoluir.'
+        },
+        insta: {
+          name: 'Treino <em>emprestado</em>',
+          plain: 'Treino emprestado',
+          diag: 'Você junta o que vê no feed. Dá variedade, mas cada treino vem de uma lógica diferente — e semana nenhuma fecha como um bloco.'
+        },
+        app: {
+          name: 'Treino <em>genérico</em>',
+          plain: 'Treino genérico',
+          diag: 'O app te dá um treino, mas não sabe da sua prova, do seu nível nem do que você fez ontem. Volume sem direção cansa e não leva a lugar nenhum.'
+        },
+        guiado: {
+          name: 'Atleta <em>estruturado</em>',
+          plain: 'Atleta estruturado',
+          diag: 'Você já treina com um plano, e isso te coloca à frente. O que falta é esse plano falar a língua do HYROX: estações, trenó, transições.'
+        },
+        parei: {
+          name: 'Atleta em <em>retomada</em>',
+          plain: 'Atleta em retomada',
+          diag: 'Você está voltando. É o melhor momento pra começar com o plano pronto: constância aparece quando não sobra decisão pra tomar.'
+        }
+      };
+
       /* Tudo aqui sai do que os materiais de fato entregam, conforme a página
          principal. p = produto que cumpre a promessa. */
       var FITS = {
@@ -1782,6 +2465,29 @@
         comecando: { p: 'mc', t: 'Fisiologia, progressão de carga e prevenção de lesão explicadas pra quem está montando a primeira turma.' }
       };
 
+      /* Mesmo material, lido do lado de quem executa o treino. */
+      var FITS_A = {
+        dor: {
+          oquefazer: { p: 'aulas', t: '250 treinos completos: aquecimento, bloco técnico, bloco principal e arrefecimento, linha a linha. Você abre e executa.' },
+          estagnou: { p: 'aulas', t: '10 mesociclos de 5 semanas, com a 5ª sempre de descarga a 45% do volume — é na descarga que o desempenho sobe.' },
+          constancia: { p: 'aulas', t: 'Um treino pra cada dia útil do ano, já definido. Sem decisão pra tomar, sobra menos desculpa pra pular.' },
+          lesao: { p: 'mc', t: 'Prevenção de lesão na prática: o que vigiar em cada execução e como dosar a intensidade sem se machucar.' }
+        },
+        hyrox: {
+          nunca: { p: 'mc', t: 'As 8 estações, os 8 km e a lógica da prova explicados do zero — dá pra entender o formato antes de pensar em competir.' },
+          quero: { p: 'mc', t: 'As 8 estações, os 8 km e a lógica da prova explicados do zero — dá pra entender o formato antes de pensar em competir.' },
+          inscrito: { p: 'aulas', t: 'Progressão do trenó de 15 m até os 50 m da prova ao longo do ano, sem dia pesado depois de dia pesado.' },
+          competi: { p: 'aulas', t: 'Progressão do trenó de 15 m até os 50 m da prova ao longo do ano, sem dia pesado depois de dia pesado.' }
+        },
+        jeito: {
+          improviso: { p: 'aulas', t: 'Cada treino já vem em 3 níveis — Base, Padrão e Avançado — com a carga de cada um. Escolhe o seu e executa.' },
+          insta: { p: 'aulas', t: 'Cada treino já vem em 3 níveis — Base, Padrão e Avançado — com a carga de cada um. Escolhe o seu e executa.' },
+          app: { p: 'aulas', t: 'Semana-tipo fixa — força, aeróbio, estações, técnica e sessão mista — montada pro formato HYROX, não genérica.' },
+          guiado: { p: 'aulas', t: 'O ano inteiro periodizado: 10 mesociclos com objetivo próprio, no lugar da planilha que você mantém sozinho.' }
+        },
+        parei: { p: 'mc', t: 'Fisiologia, progressão de carga e prevenção de lesão explicadas pra quem está voltando a treinar agora.' }
+      };
+
       var PRODUCT_NAME = { aulas: '250 Aulas', mc: 'Master Class' };
 
       var PROOF = {
@@ -1789,8 +2495,35 @@
         mc: { src: 'assets/images/previews/mc-04-fisiologia.jpg', caption: 'HYROX Master Class · Fisiologia aplicada, pág. 26' }
       };
 
+      /* Nove peças, uma por pergunta: dentro de uma mesma trilha nenhuma se
+         repete, então ninguém vê o mesmo vídeo duas vezes na sequência. O still
+         é sempre carregado; o vídeo, só onde vale o download. */
+      var MEDIA = {
+        dupla: { img: 'assets/images/quiz/q-dupla.webp', video: 'assets/videos/q-dupla.mp4' },
+        sled: { img: 'assets/images/quiz/q-sled.webp', video: 'assets/videos/q-sled.mp4' },
+        turma: { img: 'assets/images/quiz/q-turma.webp', video: 'assets/videos/q-turma.mp4' },
+        circuito: { img: 'assets/images/quiz/q-circuito.webp', video: 'assets/videos/q-circuito.mp4' },
+        relogio: { img: 'assets/images/quiz/q-relogio.webp', video: 'assets/videos/q-relogio.mp4' },
+        aula: { img: 'assets/images/quiz/q-aula.webp', video: 'assets/videos/q-aula.mp4' },
+        quadro: { img: 'assets/images/quiz/q-quadro.webp', video: 'assets/videos/q-quadro.mp4' },
+        estacoes: { img: 'assets/images/quiz/q-estacoes.webp', video: 'assets/videos/q-estacoes.mp4' },
+        prova: { img: 'assets/images/quiz/q-prova.webp', video: 'assets/videos/q-prova.mp4' }
+      };
+
+      /* A peça conversa com a pergunta: o cronômetro nas perguntas de tempo, o
+         quadro branco nas de planejamento, o trenó nas de HYROX. */
+      var QUESTION_MEDIA = {
+        perfil: 'dupla',
+        /* quem dá aula */
+        local: 'turma', aulas: 'circuito', horas: 'relogio', metodo: 'quadro',
+        hyrox: 'sled', dor: 'estacoes', quer: 'aula',
+        /* quem treina */
+        onde: 'circuito', treinos: 'turma', minutos: 'relogio', jeito: 'quadro',
+        hyroxA: 'sled', dorA: 'estacoes', querA: 'prova'
+      };
+
       var WHATSAPP_NUMBER = '5555991693698';
-      var STORE_KEY = 'quiz:v1';
+      var STORE_KEY = 'quiz:v2';
 
       /* ── Rastreio (mesmas regras da página de vendas) ──────────────── */
       var eventId = function (name) {
@@ -1817,6 +2550,11 @@
       var sameTabCheckout = inAppBrowser || window.matchMedia('(max-width: 900px)').matches;
       var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+      /* Quem está com economia de dados ligada, ou numa conexão 2G, fica só
+         com as imagens — o resto do quiz funciona igual. */
+      var conexao = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      var economiaDeDados = !!(conexao && (conexao.saveData || /(^|-)2g$/.test(conexao.effectiveType || '')));
+
       /* ── Estado ──────────────────────────────────────────────────── */
       var state = { answers: {}, screen: 'intro' };
 
@@ -1831,6 +2569,39 @@
           var parsed = JSON.parse(raw);
           if (parsed && typeof parsed.answers === 'object' && typeof parsed.screen === 'string') state = parsed;
         } catch (e) { }
+      };
+
+      var audience = function () { return state.answers.perfil === 'aluno' ? 'aluno' : 'professor'; };
+
+      /* Textos marcados com data-alt têm uma versão pro aluno no próprio
+         HTML. A original fica guardada na primeira troca, então dá pra ir e
+         voltar na pergunta 01 sem perder nenhum dos dois textos. Nos <li> o
+         ícone é o primeiro filho: só o último nó de texto é reescrito. */
+      var altEls = [];
+      var applyAudience = function (aud) {
+        if (!altEls.length) {
+          altEls = Array.prototype.slice.call(document.querySelectorAll('[data-alt]'));
+          altEls.forEach(function (el) { el.setAttribute('data-orig', textOf(el)); });
+        }
+        altEls.forEach(function (el) {
+          setLastText(el, aud === 'aluno' ? el.getAttribute('data-alt') : el.getAttribute('data-orig'));
+        });
+      };
+
+      var lastTextNode = function (el) {
+        var node = el.lastChild;
+        while (node && node.nodeType !== 3) node = node.previousSibling;
+        return node;
+      };
+
+      var textOf = function (el) {
+        var node = lastTextNode(el);
+        return node ? node.nodeValue : el.textContent;
+      };
+
+      var setLastText = function (el, txt) {
+        var node = lastTextNode(el);
+        if (node) node.nodeValue = txt; else el.textContent = txt;
       };
 
       var visibleQuestions = function () {
@@ -1855,6 +2626,7 @@
       var pad = function (n) { return (n < 10 ? '0' : '') + n; };
 
       var showScreen = function (name) {
+        if (name !== 'question' && qMediaVideo.getAttribute('src')) qMediaVideo.pause();
         Object.keys(screens).forEach(function (k) {
           var el = screens[k];
           var on = k === name;
@@ -1888,7 +2660,17 @@
         render();
       };
 
+      /* Na pergunta 01 o caminho ainda não foi escolhido, e "01 / 01" daria a
+         impressão de quiz de uma pergunta só. Os dois caminhos têm o mesmo
+         tamanho, então a contagem já mostra o total de um deles. */
+      var projectedTotal = function () {
+        if (state.answers.perfil) return visibleQuestions().length;
+        var probe = { perfil: 'professor' };
+        return QUESTIONS.filter(function (q) { return !q.skipIf || !q.skipIf(probe); }).length;
+      };
+
       var render = function () {
+        applyAudience(audience());
         var s = state.screen;
         var qs = visibleQuestions();
         var idx = -1;
@@ -1921,11 +2703,54 @@
           return;
         }
 
-        renderQuestion(qs[idx], idx, qs.length);
+        renderQuestion(qs[idx], idx, Math.max(qs.length, projectedTotal()));
       };
+
+      var qMedia = $('qMedia'), qMediaImg = $('qMediaImg'), qMediaVideo = $('qMediaVideo'), qMediaCap = $('qMediaCap');
+
+      /* Os vídeos são versões leves (540x960, 12s, ~900 KB cada), então rodam
+         no celular também — um por pergunta, carregado só quando ela aparece. */
+      var playsVideo = function () { return !reduceMotion && !economiaDeDados; };
+
+      var setMedia = function (q, idx, total) {
+        var m = MEDIA[QUESTION_MEDIA[q.id]] || MEDIA.aula;
+        if (qMediaImg.getAttribute('src') !== m.img) qMediaImg.src = m.img;
+        qMediaCap.textContent = 'Pergunta ' + pad(idx + 1) + ' de ' + pad(total);
+
+        if (!playsVideo()) {
+          qMedia.classList.remove('is-playing');
+          if (qMediaVideo.getAttribute('src')) qMediaVideo.pause();
+          return;
+        }
+        /* Perguntas seguidas compartilham peça: trocar o src à toa reiniciaria
+           o vídeo que já está rodando. */
+        if (qMediaVideo.getAttribute('src') !== m.video) {
+          qMedia.classList.remove('is-playing');
+          qMediaVideo.src = m.video;
+        }
+        var tocar = qMediaVideo.play();
+        if (tocar && tocar.catch) tocar.catch(function () { });
+      };
+
+      qMediaVideo.addEventListener('playing', function () { qMedia.classList.add('is-playing'); });
+
+      /* A intro segue a mesma regra. Sem autoplay no HTML, o download só
+         começa neste play() — assim quem está em economia de dados, ou pediu
+         menos movimento, não baixa um byte de vídeo: fica o poster, com o
+         controle pra dar play se quiser. */
+      var introVideo = $('introVideo');
+      if (introVideo) {
+        if (playsVideo()) {
+          var tocarIntro = introVideo.play();
+          if (tocarIntro && tocarIntro.catch) tocarIntro.catch(function () { });
+        } else {
+          introVideo.setAttribute('controls', '');
+        }
+      }
 
       var renderQuestion = function (q, idx, total) {
         showScreen('question');
+        setMedia(q, idx, total);
         qBack.hidden = false;
         qCount.hidden = false;
         qCount.textContent = pad(idx + 1) + ' / ' + pad(total);
@@ -2061,6 +2886,48 @@
 
       /* ── Resultado ───────────────────────────────────────────────── */
       var computeResult = function () {
+        return audience() === 'aluno' ? resultAluno() : resultProfessor();
+      };
+
+      var resultAluno = function () {
+        var onde = answer('onde');
+        var training = onde && onde !== 'parei';
+        var profileKey = training ? (answer('jeito') || 'improviso') : 'parei';
+        var quer = answer('querA');
+
+        /* Quem quer o treino pronto leva as 250 aulas; entender o formato,
+           a dor de lesão e a volta aos treinos pedem a base antes. */
+        var rec = 'aulas';
+        if (quer !== 'pronto' &&
+          (quer === 'base' || !training || answer('hyroxA') === 'nunca' || answer('dorA') === 'lesao')) rec = 'mc';
+
+        var fits = [];
+        var seen = {};
+        var add = function (f) {
+          if (f && !seen[f.t]) { seen[f.t] = true; fits.push(f); }
+        };
+        add(FITS_A.dor[answer('dorA')]);
+        if (!training) add(FITS_A.parei);
+        add(FITS_A.hyrox[answer('hyroxA')]);
+        add(FITS_A.jeito[answer('jeito')]);
+
+        var minPer = MIN_PER_SESSION[answer('minutos')];
+        var sessions = SESSIONS_PER_WEEK[answer('treinos')];
+
+        return {
+          aud: 'aluno',
+          profileKey: profileKey,
+          profile: PROFILES_A[profileKey],
+          rec: rec,
+          both: quer === 'ambos',
+          minPer: minPer,
+          sessions: sessions,
+          hoursWeek: (minPer && sessions) ? minPer * sessions / 60 : 0,
+          fits: fits.slice(0, 3)
+        };
+      };
+
+      var resultProfessor = function () {
         var local = answer('local');
         var teaching = local && local !== 'comecando';
         var profileKey = teaching ? (answer('metodo') || 'improviso') : 'comecando';
@@ -2080,6 +2947,7 @@
         add(FITS.metodo[answer('metodo')]);
 
         return {
+          aud: 'professor',
           profileKey: profileKey,
           profile: PROFILES[profileKey],
           rec: rec,
@@ -2123,9 +2991,24 @@
         }
       };
 
+      var WHY_A = {
+        aulas: {
+          main: 'Pelas suas respostas, o que mais pesa é não ter o treino definido. Os 250 treinos tiram essa decisão da sua semana.',
+          both: 'Você quer os dois: comece pelos treinos prontos pra executar já, e leve a Master Class pra entender cada escolha.',
+          side: 'Quando quiser parar de decidir o treino na hora, os 250 treinos já vêm periodizados pro ano inteiro.'
+        },
+        mc: {
+          main: 'Pelas suas respostas, o primeiro passo é entender o formato e a técnica. Com a base, cada treino passa a ter um porquê.',
+          side: 'Se quiser entender o porquê de cada estação, carga e ordem, a Master Class complementa os treinos.'
+        }
+      };
+
       var renderResult = function () {
         var r = computeResult();
+        var C = COPY[r.aud];
+        var W = r.aud === 'aluno' ? WHY_A : WHY;
 
+        $('resEyebrow').textContent = C.resEyebrow;
         $('resProfile').innerHTML = r.profile.name; /* texto fixo do próprio script, sem entrada do usuário */
         $('resDiag').textContent = r.profile.diag;
 
@@ -2133,14 +3016,12 @@
         stats.textContent = '';
         if (r.hoursWeek) {
           var year = r.hoursWeek * WORK_WEEKS;
-          stats.appendChild(makeStat('≈ ' + fmt(year) + ' h', 'por ano montando aula',
-            fmt(r.hoursWeek) + ' h/semana × ' + WORK_WEEKS + ' semanas'));
-          stats.appendChild(makeStat(fmt(Math.round(year / 8)), 'dias de trabalho de 8 horas', 'mesma conta, em dias'));
+          stats.appendChild(makeStat('≈ ' + fmt(year) + ' h', C.statYear, C.formula(r)));
+          stats.appendChild(makeStat(fmt(Math.round(year / 8)), C.statDays, 'mesma conta, em dias'));
         } else {
-          stats.appendChild(makeStat('250', 'aulas prontas pro ano inteiro'));
-          stats.appendChild(makeStat('10', 'mesociclos de 5 semanas'));
+          C.fallback.forEach(function (f) { stats.appendChild(makeStat(f[0], f[1])); });
         }
-        stats.appendChild(makeStat('R$ 0,19', 'por aula nas 250 Aulas Prontas', 'R$ 47 ÷ 250 aulas'));
+        stats.appendChild(makeStat('R$ 0,28', C.statPrice, 'R$ 69,90 ÷ 250 aulas'));
 
         var fitsEl = $('resFits');
         fitsEl.textContent = '';
@@ -2171,8 +3052,8 @@
         cards[r.rec].querySelector('.card__badge').hidden = false;
         cards[side].querySelector('.card__badge').hidden = true;
         cards[r.rec].querySelector('[data-why]').textContent =
-          (r.both && WHY[r.rec].both) ? WHY[r.rec].both : WHY[r.rec].main;
-        cards[side].querySelector('[data-why]').textContent = WHY[side].side;
+          (r.both && W[r.rec].both) ? W[r.rec].both : W[r.rec].main;
+        cards[side].querySelector('[data-why]').textContent = W[side].side;
 
         var proof = PROOF[r.rec];
         if ($('proofImg').getAttribute('src') !== proof.src) $('proofImg').src = proof.src;
@@ -2184,6 +3065,7 @@
 
         trackOnce('quiz-complete', function () {
           fbq('trackCustom', 'QuizComplete', {
+            publico: r.aud,
             perfil: r.profileKey,
             recomendado: r.rec === 'aulas' ? '250-aulas' : 'master-class'
           });
@@ -2197,6 +3079,26 @@
           }, { eventID: eventId('ViewContent') });
         });
       };
+
+      /* A cascata das capas roda quando o bloco entra na tela: o pacote fica
+         abaixo da dobra, e disparar junto com o resultado gastaria a animação
+         antes de alguém ver. Uma vez só — depois o observador se desliga. */
+      var stack = document.querySelector('.bundle__stack');
+      if (stack && !reduceMotion) {
+        stack.classList.add('is-armed');
+        if ('IntersectionObserver' in window) {
+          var stackObs = new IntersectionObserver(function (entradas) {
+            entradas.forEach(function (e) {
+              if (!e.isIntersecting) return;
+              e.target.classList.add('is-in');
+              stackObs.unobserve(e.target);
+            });
+          }, { threshold: 0.4 });
+          stackObs.observe(stack);
+        } else {
+          stack.classList.add('is-in');
+        }
+      }
 
       $('proofToggle').addEventListener('click', function () {
         var open = $('proof').classList.toggle('is-open');
@@ -2214,8 +3116,7 @@
       var leadLink = $('leadWhats');
       var setupLead = function (r) {
         if (!/^\d{12,13}$/.test(WHATSAPP_NUMBER)) return;
-        var msg = 'Oi! Fiz o quiz do HYROX Daily WOD e deu o perfil "' + r.profile.plain +
-          '". Queria receber a aula-modelo gratuita.';
+        var msg = COPY[r.aud].waMsg(r.profile.plain);
         var href = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(msg);
         /* Só reescreve quando o perfil muda: voltar e avançar pro mesmo
            resultado não pode apagar a decoração que a UTMify já aplicou. */
@@ -2247,7 +3148,7 @@
       });
 
       /* ── Oferta Relâmpago ────────────────────────────────────────────
-         O clique no link de R$20 abre o modal antes de qualquer checkout. Os
+         O clique no link da Master Class abre o modal antes de qualquer checkout. Os
          botões do próprio modal ficam fora do <main>, escapam do interceptador
          e seguem o caminho normal (rastreio + UTMify). */
       var flash = $('flashOffer');
@@ -2273,7 +3174,7 @@
           fbq('trackCustom', 'FlashOfferShown', {
             content_name: '250 Aulas Prontas — Oferta Relâmpago',
             content_ids: ['250-aulas-relampago'],
-            value: 30.00,
+            value: 35.00,
             currency: 'BRL'
           }, { eventID: eventId('FlashOfferShown') });
         });
