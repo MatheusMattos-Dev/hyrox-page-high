@@ -211,11 +211,6 @@
       width: 100%;
     }
 
-    .btn--lg {
-      padding: 19px 34px;
-      font-size: 0.9rem;
-    }
-
     .btn--whats {
       background: #1FA855;
       color: #fff;
@@ -412,27 +407,22 @@
       margin: 0 0 26px;
     }
 
-    .intro__gets {
-      list-style: none;
-      margin: 0 0 30px;
-      padding: 0;
+    /* A pergunta 01 vive na abertura: o visitante responde sem passar por
+       nenhuma tela de "começar". */
+    .intro__q {
+      font-family: var(--font-display);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.01em;
+      line-height: 1.1;
+      font-size: clamp(1.05rem, 2.6vw, 1.4rem);
+      margin: 0;
+      padding-top: 22px;
       border-top: 1px solid var(--line-on-ink);
     }
 
-    .intro__gets li {
-      display: flex;
-      align-items: baseline;
-      gap: 14px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--line-on-ink);
-      font-weight: 500;
-    }
-
-    .intro__gets span {
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--ember);
+    .opts--intro {
+      margin-top: 14px;
     }
 
     .intro__meta {
@@ -1821,17 +1811,13 @@
     <section class="screen" id="sIntro">
       <div class="container container--wide intro">
         <div>
-          <p class="eyebrow">Quiz pra quem vive treino funcional</p>
+          <p class="eyebrow">5 perguntas · menos de 30 segundos</p>
           <h1 class="intro__title">Quantas horas por ano você perde <em>antes do treino começar?</em></h1>
-          <p class="intro__desc">Até 8 perguntas rápidas — e o quiz muda se você dá aula ou se você treina. No
-            final, você vê a conta do tempo que vai embora e qual material resolve o seu caso.</p>
-          <ol class="intro__gets">
-            <li><span>01</span>Seu perfil</li>
-            <li><span>02</span>As horas por ano que você perde planejando</li>
-            <li><span>03</span>O material certo pro seu caso</li>
-          </ol>
-          <button type="button" class="btn btn--primary btn--lg" id="startBtn">Começar o quiz</button>
-          <p class="intro__meta">Grátis · Menos de 1 minuto · Sem cadastro</p>
+          <p class="intro__desc">Responda a primeira pergunta e o quiz já começa. No final você vê a conta do
+            tempo que vai embora e qual material resolve o seu caso.</p>
+          <h2 class="intro__q" id="introTitle" tabindex="-1">Você dá aula ou você treina?</h2>
+          <div class="opts opts--intro" id="introOpts" role="group" aria-labelledby="introTitle"></div>
+          <p class="intro__meta">Grátis · Sem cadastro · Resultado na hora</p>
         </div>
         <figure class="intro__visual">
           <span class="intro__tag"><span class="dot"></span>Cena real de aula</span>
@@ -2161,58 +2147,26 @@
       /* soProf esconde a pergunta de quem treina; soAluno, de quem dá aula. */
       var soProf = function (a) { return !isProf(a); };
       var soAluno = function (a) { return !isAluno(a); };
-      var notTeaching = function (a) { return !isProf(a) || a.local === 'comecando'; };
-      var notTraining = function (a) { return !isAluno(a) || a.onde === 'parei'; };
+      var notTeaching = function (a) { return !isProf(a) || a.metodo === 'comecando'; };
+      var notTraining = function (a) { return !isAluno(a) || a.jeito === 'parei'; };
 
+      /* A pergunta 01 fica na própria tela de abertura, não numa etapa
+         separada: duas opções, leitura de um segundo. É o compromisso mais
+         barato possível pra entrar no quiz — quem clica já está dentro. */
+      var Q_PERFIL = {
+        id: 'perfil',
+        title: 'Você dá aula ou você treina?',
+        options: [
+          { id: 'professor', label: 'Dou aula', note: 'Professor, personal ou treinador' },
+          { id: 'aluno', label: 'Eu treino', note: 'Faço aula ou treino por conta' }
+        ]
+      };
+
+      /* Da 02 em diante: quatro perguntas por trilha, uma por finalidade —
+         perfil, a conta do tempo, a dor e a recomendação. Nenhuma pergunta
+         que não mude o resultado fica no caminho. */
       var QUESTIONS = [
-        {
-          id: 'perfil',
-          title: 'Você dá aula ou você treina?',
-          help: 'O resto do quiz muda conforme a sua resposta.',
-          options: [
-            { id: 'professor', label: 'Dou aula', note: 'Professor, personal ou treinador' },
-            { id: 'aluno', label: 'Eu treino', note: 'Faço aula ou treino por conta' }
-          ]
-        },
-
         /* ── Caminho de quem dá aula ──────────────────────────────── */
-        {
-          id: 'local',
-          skipIf: soProf,
-          title: 'Onde você dá aula hoje?',
-          help: 'Escolha o que mais se parece com a sua rotina.',
-          options: [
-            { id: 'box', label: 'Box de CrossFit' },
-            { id: 'academia', label: 'Academia de treino funcional' },
-            { id: 'personal', label: 'Personal trainer', note: 'Aluno individual ou grupos pequenos' },
-            { id: 'studio', label: 'Studio próprio' },
-            { id: 'comecando', label: 'Ainda não dou aula', note: 'Estou me preparando pra começar' }
-          ]
-        },
-        {
-          id: 'aulas',
-          title: 'Quantas aulas você dá por semana?',
-          help: 'Somando todas as turmas e alunos.',
-          skipIf: notTeaching,
-          options: [
-            { id: 'ate5', label: 'Até 5' },
-            { id: '6a15', label: 'De 6 a 15' },
-            { id: '16a30', label: 'De 16 a 30' },
-            { id: 'mais30', label: 'Mais de 30' }
-          ]
-        },
-        {
-          id: 'horas',
-          title: 'Quanto tempo por semana você gasta montando aula?',
-          help: 'Pensando, pesquisando, escrevendo o treino. Chute honesto vale.',
-          skipIf: notTeaching,
-          options: [
-            { id: 'menos1', label: 'Menos de 1 hora' },
-            { id: '1a3', label: 'De 1 a 3 horas' },
-            { id: '3a5', label: 'De 3 a 5 horas' },
-            { id: 'mais5', label: 'Mais de 5 horas' }
-          ]
-        },
         {
           id: 'metodo',
           skipIf: soProf,
@@ -2221,18 +2175,20 @@
             { id: 'improviso', label: 'Na hora, com o que vem na cabeça' },
             { id: 'insta', label: 'Pego ideia no Instagram e adapto' },
             { id: 'planilha', label: 'Tenho uma planilha minha' },
-            { id: 'periodizacao', label: 'Sigo uma periodização com ciclos' }
+            { id: 'periodizacao', label: 'Sigo uma periodização com ciclos' },
+            { id: 'comecando', label: 'Ainda não dou aula', note: 'Estou me preparando pra começar' }
           ]
         },
         {
-          id: 'hyrox',
-          skipIf: soProf,
-          title: 'Qual a sua relação com o HYROX?',
+          id: 'horas',
+          skipIf: notTeaching,
+          title: 'Quanto tempo por semana você gasta montando aula?',
+          help: 'Pensando, pesquisando, escrevendo o treino. Chute honesto vale.',
           options: [
-            { id: 'nunca', label: 'Conheço pouco', note: 'Nunca apliquei na aula' },
-            { id: 'curioso', label: 'Quero levar pra minha turma' },
-            { id: 'aplico', label: 'Já aplico estações na aula' },
-            { id: 'competi', label: 'Já competi ou preparo atleta pra prova' }
+            { id: 'menos1', label: 'Menos de 1 hora' },
+            { id: '1a3', label: 'De 1 a 3 horas' },
+            { id: '3a5', label: 'De 3 a 5 horas' },
+            { id: 'mais5', label: 'Mais de 5 horas' }
           ]
         },
         {
@@ -2258,46 +2214,9 @@
         },
 
         /* ── Caminho de quem treina ───────────────────────────────────
-           Ids próprios (onde, jeito, hyroxA…) em vez de reaproveitar os do
+           Ids próprios (jeito, tempoA…) em vez de reaproveitar os do
            professor: assim cada público chega ao pixel separado, e trocar a
            resposta da pergunta 01 não mistura as duas trilhas. */
-        {
-          id: 'onde',
-          skipIf: soAluno,
-          title: 'Onde você treina hoje?',
-          help: 'Escolha o que mais se parece com a sua rotina.',
-          options: [
-            { id: 'box', label: 'Box de CrossFit' },
-            { id: 'academia', label: 'Academia de treino funcional' },
-            { id: 'personal', label: 'Com personal trainer' },
-            { id: 'casa', label: 'Em casa ou ao ar livre' },
-            { id: 'parei', label: 'Parei de treinar', note: 'Quero voltar agora' }
-          ]
-        },
-        {
-          id: 'treinos',
-          skipIf: notTraining,
-          title: 'Quantas vezes por semana você treina?',
-          help: 'Na média das últimas semanas, sem enfeitar.',
-          options: [
-            { id: '1a2', label: '1 ou 2 vezes' },
-            { id: '3a4', label: '3 ou 4 vezes' },
-            { id: '5a6', label: '5 ou 6 vezes' },
-            { id: 'todo', label: 'Todo dia' }
-          ]
-        },
-        {
-          id: 'minutos',
-          skipIf: notTraining,
-          title: 'Quanto tempo você perde decidindo o que fazer no treino?',
-          help: 'Antes de começar de fato: pensando, procurando, rolando o feed.',
-          options: [
-            { id: 'menos5', label: 'Menos de 5 minutos' },
-            { id: '5a15', label: 'De 5 a 15 minutos' },
-            { id: '15a30', label: 'De 15 a 30 minutos' },
-            { id: 'mais30', label: 'Mais de 30', note: 'Às vezes o treino nem sai direito' }
-          ]
-        },
         {
           id: 'jeito',
           skipIf: soAluno,
@@ -2306,18 +2225,20 @@
             { id: 'improviso', label: 'Chego e vejo na hora' },
             { id: 'insta', label: 'Sigo o que vejo no Instagram ou YouTube' },
             { id: 'app', label: 'Uso um app genérico' },
-            { id: 'guiado', label: 'Tenho planilha ou personal' }
+            { id: 'guiado', label: 'Tenho planilha ou personal' },
+            { id: 'parei', label: 'Parei de treinar', note: 'Quero voltar agora' }
           ]
         },
         {
-          id: 'hyroxA',
-          skipIf: soAluno,
-          title: 'Qual a sua relação com o HYROX?',
+          id: 'tempoA',
+          skipIf: notTraining,
+          title: 'Quanto tempo por semana você perde decidindo o que treinar?',
+          help: 'Somando os minutos de cada treino: pensando, procurando, rolando o feed.',
           options: [
-            { id: 'nunca', label: 'Só ouvi falar' },
-            { id: 'quero', label: 'Quero fazer minha primeira prova' },
-            { id: 'inscrito', label: 'Já tenho prova marcada' },
-            { id: 'competi', label: 'Já competi e quero baixar meu tempo' }
+            { id: 'ate15', label: 'Menos de 15 minutos' },
+            { id: '15a45', label: 'De 15 a 45 minutos' },
+            { id: '45a2h', label: 'De 45 minutos a 2 horas' },
+            { id: 'mais2h', label: 'Mais de 2 horas', note: 'Às vezes o treino nem sai direito' }
           ]
         },
         {
@@ -2349,10 +2270,10 @@
       var HOURS_PER_WEEK = { menos1: 0.5, '1a3': 2, '3a5': 4, mais5: 6 };
       var WORK_WEEKS = 48;
 
-      /* A mesma conta do professor, na moeda de quem treina: minutos perdidos
-         por treino × treinos por semana. Ponto médio de cada faixa. */
-      var MIN_PER_SESSION = { menos5: 3, '5a15': 10, '15a30': 22, mais30: 40 };
-      var SESSIONS_PER_WEEK = { '1a2': 1.5, '3a4': 3.5, '5a6': 5.5, todo: 7 };
+      /* A mesma conta na moeda de quem treina: as faixas são menores porque
+         decidir um treino custa menos que montar uma aula, mas a fórmula que
+         aparece na tela é a mesma — h/semana × 48. */
+      var HOURS_PER_WEEK_A = { ate15: 0.2, '15a45': 0.5, '45a2h': 1.4, mais2h: 2.5 };
 
       /* Textos que mudam de público. O resto da tela de resultado é igual
          pros dois: o que muda é de quem é o tempo perdido. */
@@ -2375,9 +2296,7 @@
           statDays: 'dias inteiros de 8 horas',
           statPrice: 'por treino nas 250 Aulas Prontas',
           fallback: [['250', 'treinos prontos pro ano inteiro'], ['10', 'mesociclos de 5 semanas']],
-          formula: function (r) {
-            return r.minPer + ' min × ' + fmt(r.sessions) + ' treinos/semana × ' + WORK_WEEKS + ' semanas';
-          },
+          formula: function (r) { return fmt(r.hoursWeek) + ' h/semana × ' + WORK_WEEKS + ' semanas'; },
           waMsg: function (perfil) {
             return 'Oi! Fiz o quiz do HYROX Daily WOD e deu o perfil "' + perfil +
               '". Queria receber o treino-modelo gratuito.';
@@ -2450,12 +2369,9 @@
           niveis: { p: 'aulas', t: 'Cada aula já vem em 3 níveis — Base, Padrão e Avançado — com a carga e a adaptação de cada um.' },
           porque: { p: 'mc', t: '150 páginas sobre o porquê: essa estação, essa carga, essa ordem — com fisiologia e periodização aplicadas à aula.' }
         },
-        hyrox: {
-          nunca: { p: 'mc', t: 'Não precisa ter competido: a Master Class explica o formato do zero, e cada aula já vem com o nível de adaptação definido.' },
-          curioso: { p: 'mc', t: 'Não precisa ter competido: a Master Class explica o formato do zero, e cada aula já vem com o nível de adaptação definido.' },
-          aplico: { p: 'aulas', t: 'Progressão do trenó de 15 m até os 50 m da prova ao longo do ano, sem dia pesado depois de dia pesado.' },
-          competi: { p: 'aulas', t: 'Progressão do trenó de 15 m até os 50 m da prova ao longo do ano, sem dia pesado depois de dia pesado.' }
-        },
+        /* Entra sempre, no fim da lista: como a pergunta de HYROX saiu do
+           caminho, o encaixe do formato vale pra todo mundo. */
+        formato: { p: 'mc', t: 'Não precisa ter competido: a Master Class explica as 8 estações e a lógica do formato do zero, e cada aula já vem com o nível de adaptação definido.' },
         metodo: {
           improviso: { p: 'aulas', t: 'Cada aula traz o bloco técnico com os 2 pontos a corrigir no dia e a frase de coaching pronta — você chega e aplica.' },
           insta: { p: 'aulas', t: 'Cada aula traz o bloco técnico com os 2 pontos a corrigir no dia e a frase de coaching pronta — você chega e aplica.' },
@@ -2473,12 +2389,7 @@
           constancia: { p: 'aulas', t: 'Um treino pra cada dia útil do ano, já definido. Sem decisão pra tomar, sobra menos desculpa pra pular.' },
           lesao: { p: 'mc', t: 'Prevenção de lesão na prática: o que vigiar em cada execução e como dosar a intensidade sem se machucar.' }
         },
-        hyrox: {
-          nunca: { p: 'mc', t: 'As 8 estações, os 8 km e a lógica da prova explicados do zero — dá pra entender o formato antes de pensar em competir.' },
-          quero: { p: 'mc', t: 'As 8 estações, os 8 km e a lógica da prova explicados do zero — dá pra entender o formato antes de pensar em competir.' },
-          inscrito: { p: 'aulas', t: 'Progressão do trenó de 15 m até os 50 m da prova ao longo do ano, sem dia pesado depois de dia pesado.' },
-          competi: { p: 'aulas', t: 'Progressão do trenó de 15 m até os 50 m da prova ao longo do ano, sem dia pesado depois de dia pesado.' }
-        },
+        formato: { p: 'mc', t: 'As 8 estações, os 8 km e a lógica da prova explicados do zero — dá pra entender o formato antes de pensar em competir.' },
         jeito: {
           improviso: { p: 'aulas', t: 'Cada treino já vem em 3 níveis — Base, Padrão e Avançado — com a carga de cada um. Escolhe o seu e executa.' },
           insta: { p: 'aulas', t: 'Cada treino já vem em 3 níveis — Base, Padrão e Avançado — com a carga de cada um. Escolhe o seu e executa.' },
@@ -2495,14 +2406,11 @@
         mc: { src: 'assets/images/previews/mc-04-fisiologia.jpg', caption: 'HYROX Master Class · Fisiologia aplicada, pág. 26' }
       };
 
-      /* Nove peças, uma por pergunta: dentro de uma mesma trilha nenhuma se
-         repete, então ninguém vê o mesmo vídeo duas vezes na sequência. O still
-         é sempre carregado; o vídeo, só onde vale o download. */
+      /* Uma peça por pergunta: dentro de uma mesma trilha nenhuma se repete,
+         então ninguém vê o mesmo vídeo duas vezes na sequência. O still é
+         sempre carregado; o vídeo, só onde vale o download. */
       var MEDIA = {
         dupla: { img: 'assets/images/quiz/q-dupla.webp', video: 'assets/videos/q-dupla.mp4' },
-        sled: { img: 'assets/images/quiz/q-sled.webp', video: 'assets/videos/q-sled.mp4' },
-        turma: { img: 'assets/images/quiz/q-turma.webp', video: 'assets/videos/q-turma.mp4' },
-        circuito: { img: 'assets/images/quiz/q-circuito.webp', video: 'assets/videos/q-circuito.mp4' },
         relogio: { img: 'assets/images/quiz/q-relogio.webp', video: 'assets/videos/q-relogio.mp4' },
         aula: { img: 'assets/images/quiz/q-aula.webp', video: 'assets/videos/q-aula.mp4' },
         quadro: { img: 'assets/images/quiz/q-quadro.webp', video: 'assets/videos/q-quadro.mp4' },
@@ -2510,20 +2418,17 @@
         prova: { img: 'assets/images/quiz/q-prova.webp', video: 'assets/videos/q-prova.mp4' }
       };
 
-      /* A peça conversa com a pergunta: o cronômetro nas perguntas de tempo, o
-         quadro branco nas de planejamento, o trenó nas de HYROX. */
+      /* A peça conversa com a pergunta: o cronômetro nas de tempo, o quadro
+         branco nas de planejamento, as estações nas de dor. */
       var QUESTION_MEDIA = {
-        perfil: 'dupla',
         /* quem dá aula */
-        local: 'turma', aulas: 'circuito', horas: 'relogio', metodo: 'quadro',
-        hyrox: 'sled', dor: 'estacoes', quer: 'aula',
+        metodo: 'quadro', horas: 'relogio', dor: 'estacoes', quer: 'aula',
         /* quem treina */
-        onde: 'circuito', treinos: 'turma', minutos: 'relogio', jeito: 'quadro',
-        hyroxA: 'sled', dorA: 'estacoes', querA: 'prova'
+        jeito: 'quadro', tempoA: 'relogio', dorA: 'estacoes', querA: 'prova'
       };
 
       var WHATSAPP_NUMBER = '5555991693698';
-      var STORE_KEY = 'quiz:v2';
+      var STORE_KEY = 'quiz:v3';
 
       /* ── Rastreio (mesmas regras da página de vendas) ──────────────── */
       var eventId = function (name) {
@@ -2660,13 +2565,12 @@
         render();
       };
 
-      /* Na pergunta 01 o caminho ainda não foi escolhido, e "01 / 01" daria a
-         impressão de quiz de uma pergunta só. Os dois caminhos têm o mesmo
-         tamanho, então a contagem já mostra o total de um deles. */
-      var projectedTotal = function () {
-        if (state.answers.perfil) return visibleQuestions().length;
-        var probe = { perfil: 'professor' };
-        return QUESTIONS.filter(function (q) { return !q.skipIf || !q.skipIf(probe); }).length;
+      /* A pergunta 01 já está respondida quando as outras aparecem, então ela
+         entra no total na mão. Na abertura o caminho ainda não foi escolhido:
+         os dois têm o mesmo tamanho, então a contagem mostra o de um deles. */
+      var totalQuestions = function () {
+        var probe = state.answers.perfil ? state.answers : { perfil: 'professor' };
+        return QUESTIONS.filter(function (q) { return !q.skipIf || !q.skipIf(probe); }).length + 1;
       };
 
       var render = function () {
@@ -2680,8 +2584,11 @@
           state.screen = 'intro';
           showScreen('intro');
           qBack.hidden = true;
-          qCount.hidden = true;
+          qCount.hidden = false;
+          qCount.textContent = pad(1) + ' / ' + pad(totalQuestions());
           qFill.style.width = '0%';
+          locked = false;
+          renderIntro();
           return;
         }
 
@@ -2703,7 +2610,7 @@
           return;
         }
 
-        renderQuestion(qs[idx], idx, Math.max(qs.length, projectedTotal()));
+        renderQuestion(qs[idx], idx, totalQuestions());
       };
 
       var qMedia = $('qMedia'), qMediaImg = $('qMediaImg'), qMediaVideo = $('qMediaVideo'), qMediaCap = $('qMediaCap');
@@ -2712,10 +2619,10 @@
          no celular também — um por pergunta, carregado só quando ela aparece. */
       var playsVideo = function () { return !reduceMotion && !economiaDeDados; };
 
-      var setMedia = function (q, idx, total) {
+      var setMedia = function (q, num, total) {
         var m = MEDIA[QUESTION_MEDIA[q.id]] || MEDIA.aula;
         if (qMediaImg.getAttribute('src') !== m.img) qMediaImg.src = m.img;
-        qMediaCap.textContent = 'Pergunta ' + pad(idx + 1) + ' de ' + pad(total);
+        qMediaCap.textContent = 'Pergunta ' + pad(num) + ' de ' + pad(total);
 
         if (!playsVideo()) {
           qMedia.classList.remove('is-playing');
@@ -2748,21 +2655,9 @@
         }
       }
 
-      var renderQuestion = function (q, idx, total) {
-        showScreen('question');
-        setMedia(q, idx, total);
-        qBack.hidden = false;
-        qCount.hidden = false;
-        qCount.textContent = pad(idx + 1) + ' / ' + pad(total);
-        qFill.style.width = (idx / total * 100) + '%';
-
-        $('qNum').textContent = 'Pergunta ' + pad(idx + 1);
-        $('qTitle').textContent = q.title;
-        var help = $('qHelp');
-        help.textContent = q.help || '';
-        help.hidden = !q.help;
-
-        var box = $('qOpts');
+      /* Mesmo construtor pra abertura e pras outras telas: o que muda é só
+         onde os botões entram e o que acontece depois do clique. */
+      var buildOptions = function (box, q, onPick) {
         box.textContent = '';
         q.options.forEach(function (opt, i) {
           var b = document.createElement('button');
@@ -2787,37 +2682,75 @@
 
           b.appendChild(key);
           b.appendChild(text);
-          b.addEventListener('click', function () { choose(q, opt.id, b); });
+          b.addEventListener('click', function () { onPick(opt.id, b); });
           box.appendChild(b);
+        });
+      };
+
+      var introOpts = $('introOpts');
+
+      /* Responder a 01 é o que inicia o quiz: não há mais um clique de
+         "começar" antes dela, então é aqui que o QuizStart sai. */
+      var renderIntro = function () {
+        buildOptions(introOpts, Q_PERFIL, function (value, btn) {
+          trackOnce('quiz-start', function () { fbq('trackCustom', 'QuizStart'); });
+          trackOnce('quiz-step-perfil', function () {
+            fbq('trackCustom', 'QuizStep', { step: 1, question: 'perfil' });
+          });
+          choose(Q_PERFIL, value, btn, introOpts, function () {
+            go(visibleQuestions()[0].id, 'push');
+          });
+        });
+      };
+
+      var renderQuestion = function (q, idx, total) {
+        var num = idx + 2; /* a 01 é a da abertura */
+        showScreen('question');
+        setMedia(q, num, total);
+        qBack.hidden = false;
+        qCount.hidden = false;
+        qCount.textContent = pad(num) + ' / ' + pad(total);
+        qFill.style.width = ((num - 1) / total * 100) + '%';
+
+        $('qNum').textContent = 'Pergunta ' + pad(num);
+        $('qTitle').textContent = q.title;
+        var help = $('qHelp');
+        help.textContent = q.help || '';
+        help.hidden = !q.help;
+
+        var box = $('qOpts');
+        buildOptions(box, q, function (value, btn) {
+          choose(q, value, btn, box, function () {
+            var qs = visibleQuestions();
+            var pos = qs.indexOf(q);
+            var next = qs[pos + 1];
+            /* Sem mexer no histórico ao ir pro carregando: a última pergunta
+              precisa continuar lá, pra ser onde o voltar do resultado cai. */
+            go(next ? next.id : 'loading', next ? 'push' : null);
+          });
         });
 
         locked = false;
         $('qTitle').focus({ preventScroll: true });
 
         trackOnce('quiz-step-' + q.id, function () {
-          fbq('trackCustom', 'QuizStep', { step: idx + 1, question: q.id });
+          fbq('trackCustom', 'QuizStep', { step: num, question: q.id });
         });
       };
 
-      var choose = function (q, value, btn) {
+      var choose = function (q, value, btn, box, next) {
         if (locked) return;
         locked = true;
         state.answers[q.id] = value;
         save();
-        Array.prototype.forEach.call($('qOpts').children, function (el) {
+        Array.prototype.forEach.call(box.children, function (el) {
           el.setAttribute('aria-pressed', String(el === btn));
         });
 
         /* Uma pausa curta deixa ver a opção marcada antes de trocar de tela;
-           sem ela o toque parece não ter sido registrado. */
-        setTimeout(function () {
-          var qs = visibleQuestions();
-          var idx = qs.indexOf(q);
-          var next = qs[idx + 1];
-          /* Sem mexer no histórico ao ir pro carregando: a última pergunta
-            precisa continuar lá, pra ser onde o voltar do resultado cai. */
-          go(next ? next.id : 'loading', next ? 'push' : null);
-        }, reduceMotion ? 80 : 260);
+           sem ela o toque parece não ter sido registrado. Curta mesmo: cada
+           décimo aqui é multiplicado pelas perguntas todas. */
+        setTimeout(next, reduceMotion ? 60 : 160);
       };
 
       var goBack = function () {
@@ -2848,16 +2781,13 @@
       qBack.addEventListener('click', goBack);
 
       document.addEventListener('keydown', function (e) {
-        if (screens.question.hidden || e.altKey || e.ctrlKey || e.metaKey) return;
+        if (e.altKey || e.ctrlKey || e.metaKey) return;
+        var box = !screens.question.hidden ? $('qOpts') : (!screens.intro.hidden ? introOpts : null);
+        if (!box) return;
         var k = e.key.toUpperCase();
         var i = /^[1-9]$/.test(k) ? Number(k) - 1 : (/^[A-E]$/.test(k) ? k.charCodeAt(0) - 65 : -1);
-        var opt = $('qOpts').children[i];
+        var opt = box.children[i];
         if (opt) opt.click();
-      });
-
-      $('startBtn').addEventListener('click', function () {
-        trackOnce('quiz-start', function () { fbq('trackCustom', 'QuizStart'); });
-        go(visibleQuestions()[0].id, 'push');
       });
 
       $('restartBtn').addEventListener('click', function () {
@@ -2874,7 +2804,7 @@
         Array.prototype.forEach.call(items, function (li) { li.classList.remove('is-done'); });
         $('loadTitle').focus({ preventScroll: true });
 
-        var step = reduceMotion ? 150 : 700;
+        var step = reduceMotion ? 120 : 380;
         Array.prototype.forEach.call(items, function (li, i) {
           loadTimers.push(setTimeout(function () { li.classList.add('is-done'); }, step * (i + 1)));
         });
@@ -2889,17 +2819,18 @@
         return audience() === 'aluno' ? resultAluno() : resultProfessor();
       };
 
+      /* Quem parou de treinar diz isso na própria pergunta de como decide o
+         treino: uma pergunta a menos, e o perfil sai da mesma resposta. */
       var resultAluno = function () {
-        var onde = answer('onde');
-        var training = onde && onde !== 'parei';
-        var profileKey = training ? (answer('jeito') || 'improviso') : 'parei';
+        var jeito = answer('jeito') || 'improviso';
+        var training = jeito !== 'parei';
         var quer = answer('querA');
 
         /* Quem quer o treino pronto leva as 250 aulas; entender o formato,
            a dor de lesão e a volta aos treinos pedem a base antes. */
         var rec = 'aulas';
         if (quer !== 'pronto' &&
-          (quer === 'base' || !training || answer('hyroxA') === 'nunca' || answer('dorA') === 'lesao')) rec = 'mc';
+          (quer === 'base' || !training || answer('dorA') === 'lesao')) rec = 'mc';
 
         var fits = [];
         var seen = {};
@@ -2908,33 +2839,30 @@
         };
         add(FITS_A.dor[answer('dorA')]);
         if (!training) add(FITS_A.parei);
-        add(FITS_A.hyrox[answer('hyroxA')]);
-        add(FITS_A.jeito[answer('jeito')]);
-
-        var minPer = MIN_PER_SESSION[answer('minutos')];
-        var sessions = SESSIONS_PER_WEEK[answer('treinos')];
+        add(FITS_A.jeito[jeito]);
+        add(FITS_A.formato);
 
         return {
           aud: 'aluno',
-          profileKey: profileKey,
-          profile: PROFILES_A[profileKey],
+          profileKey: jeito,
+          profile: PROFILES_A[jeito] || PROFILES_A.improviso,
           rec: rec,
           both: quer === 'ambos',
-          minPer: minPer,
-          sessions: sessions,
-          hoursWeek: (minPer && sessions) ? minPer * sessions / 60 : 0,
+          hoursWeek: HOURS_PER_WEEK_A[answer('tempoA')] || 0,
           fits: fits.slice(0, 3)
         };
       };
 
+      /* Mesma ideia do outro lado: "ainda não dou aula" é uma opção de como
+         monta a aula, não uma pergunta só pra isso. */
       var resultProfessor = function () {
-        var local = answer('local');
-        var teaching = local && local !== 'comecando';
-        var profileKey = teaching ? (answer('metodo') || 'improviso') : 'comecando';
+        var metodo = answer('metodo') || 'improviso';
+        var teaching = metodo !== 'comecando';
+        var quer = answer('quer');
 
         var rec = 'aulas';
-        if (answer('quer') === 'base') rec = 'mc';
-        if (!teaching && answer('quer') !== 'pronta') rec = 'mc';
+        if (quer === 'base') rec = 'mc';
+        if (!teaching && quer !== 'pronta') rec = 'mc';
 
         var fits = [];
         var seen = {};
@@ -2943,16 +2871,16 @@
         };
         add(FITS.dor[answer('dor')]);
         if (!teaching) add(FITS.comecando);
-        add(FITS.hyrox[answer('hyrox')]);
-        add(FITS.metodo[answer('metodo')]);
+        add(FITS.metodo[metodo]);
+        add(FITS.formato);
 
         return {
           aud: 'professor',
-          profileKey: profileKey,
-          profile: PROFILES[profileKey],
+          profileKey: metodo,
+          profile: PROFILES[metodo] || PROFILES.improviso,
           rec: rec,
-          both: answer('quer') === 'ambos',
-          hoursWeek: HOURS_PER_WEEK[answer('horas')],
+          both: quer === 'ambos',
+          hoursWeek: HOURS_PER_WEEK[answer('horas')] || 0,
           fits: fits.slice(0, 3)
         };
       };
