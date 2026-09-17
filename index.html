@@ -117,7 +117,12 @@
       flex-direction: column;
       min-height: 100vh;
       min-height: 100dvh;
-      background: var(--ink);
+      /* Mesmo fundo da página de vendas: tinta lisa com as réguas verticais
+         de 64px por cima, fixas para não “correrem” na rolagem. */
+      background-color: var(--ink);
+      background-image:
+        repeating-linear-gradient(90deg, rgba(236, 231, 222, 0.035) 0 1px, transparent 1px 64px);
+      background-attachment: fixed;
       color: var(--paper);
       font-family: var(--font-body);
       font-size: 16px;
