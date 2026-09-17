@@ -476,6 +476,45 @@
       object-fit: cover;
     }
 
+    /* So entra quando o navegador recusa o autoplay (iOS em baixo consumo,
+       Safari com autoplay desligado, webview do Instagram). Antes disso a
+       pessoa ficava olhando um poster parado, sem sinal de que ali tem video. */
+    .intro__play {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      background: rgba(14, 13, 8, 0.38);
+      color: var(--paper);
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .intro__visual.is-blocked .intro__play {
+      display: flex;
+    }
+
+    .intro__play .icon {
+      width: 56px;
+      height: 56px;
+      padding: 15px;
+      border-radius: 50%;
+      background: var(--ember);
+      color: var(--paper);
+      stroke: none;
+    }
+
     .intro__tag {
       position: absolute;
       top: 18px;
@@ -1831,6 +1870,12 @@
             <source src="assets/videos/q-prova.mp4" type="video/mp4">
             <img src="assets/images/quiz/q-prova.webp" alt="Treino funcional em estações">
           </video>
+          <button class="intro__play" id="introPlay" type="button">
+            <svg class="icon" aria-hidden="true">
+              <use href="#icon-play" />
+            </svg>
+            <span>Ver a cena</span>
+          </button>
           <figcaption class="intro__caption"><span>Sem atores. Sem estúdio.</span></figcaption>
         </figure>
       </div>
@@ -2624,6 +2669,55 @@
          no celular também — um por pergunta, carregado só quando ela aparece. */
       var playsVideo = function () { return !reduceMotion && !economiaDeDados; };
 
+      /* ── Play dos vídeos ───────────────────────────────────
+         play() devolve uma promessa que vários navegadores recusam mesmo com
+         o vídeo mudo: iOS em modo de baixo consumo, Safari com "reprodução
+         automática: nunca", aba aberta em segundo plano e — o caso mais comum
+         aqui, porque o tráfego vem de anúncio — o navegador interno do
+         Instagram/Facebook. A recusa era engolida por um catch vazio: o vídeo
+         travava no poster para sempre, sem segunda tentativa e sem botão.
+         Agora cada recusa fica na fila e volta a tentar no primeiro gesto da
+         pessoa (que já é gesto válido para o navegador) e quando a aba volta
+         para a frente. */
+      var filaDeGesto = [];
+
+      var destravarVideos = function () {
+        var fila = filaDeGesto;
+        filaDeGesto = [];
+        fila.forEach(function (fn) { fn(); });
+      };
+
+      ['pointerdown', 'touchstart', 'keydown'].forEach(function (ev) {
+        document.addEventListener(ev, destravarVideos, { passive: true });
+      });
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) destravarVideos();
+      });
+
+      var tocarVideo = function (video, aoFalhar, aoConseguir) {
+        if (!video) return;
+        if (!video.getAttribute('src') && !video.querySelector('source')) return;
+        /* A propriedade, e não só o atributo: o Safari só aceita autoplay
+           quando muted está marcado no objeto na hora do play(). */
+        video.muted = true;
+        video.playsInline = true;
+        /* preload="none" deixa o elemento em NETWORK_EMPTY; sem um load()
+           explícito o Safari não busca nada e o play() morre na largada. */
+        if (video.readyState === 0) { try { video.load(); } catch (e) { } }
+        var p;
+        try { p = video.play(); } catch (e) { p = null; }
+        if (p && p.then) {
+          p.then(function () {
+            if (aoConseguir) aoConseguir();
+          }, function () {
+            if (aoFalhar) aoFalhar();
+            filaDeGesto.push(function () { tocarVideo(video, aoFalhar, aoConseguir); });
+          });
+        } else if (aoConseguir) {
+          aoConseguir();
+        }
+      };
+
       var setMedia = function (q, num, total) {
         var m = MEDIA[QUESTION_MEDIA[q.id]] || MEDIA.aula;
         if (qMediaImg.getAttribute('src') !== m.img) qMediaImg.src = m.img;
@@ -2639,9 +2733,9 @@
         if (qMediaVideo.getAttribute('src') !== m.video) {
           qMedia.classList.remove('is-playing');
           qMediaVideo.src = m.video;
+          qMediaVideo.load();
         }
-        var tocar = qMediaVideo.play();
-        if (tocar && tocar.catch) tocar.catch(function () { });
+        tocarVideo(qMediaVideo);
       };
 
       qMediaVideo.addEventListener('playing', function () { qMedia.classList.add('is-playing'); });
@@ -2651,12 +2745,46 @@
          menos movimento, não baixa um byte de vídeo: fica o poster, com o
          controle pra dar play se quiser. */
       var introVideo = $('introVideo');
+      var introVisual = introVideo && introVideo.closest('.intro__visual');
+      var introPlay = $('introPlay');
+
       if (introVideo) {
+        var marcarBloqueado = function () {
+          if (introVisual) introVisual.classList.add('is-blocked');
+        };
+        var marcarTocando = function () {
+          if (introVisual) introVisual.classList.remove('is-blocked');
+        };
+        introVideo.addEventListener('playing', marcarTocando);
+
+        var tocarIntro = function () { tocarVideo(introVideo, marcarBloqueado, marcarTocando); };
+
         if (playsVideo()) {
-          var tocarIntro = introVideo.play();
-          if (tocarIntro && tocarIntro.catch) tocarIntro.catch(function () { });
+          tocarIntro();
+          /* A tela de abertura pode estar escondida na volta de uma sessão
+             retomada, ou fora da viewport no celular. O observer cuida dos
+             dois: só toca com a peça na tela e pausa quando ela sai, em vez
+             de baixar e rodar vídeo que ninguém está vendo. */
+          if ('IntersectionObserver' in window && introVisual) {
+            new IntersectionObserver(function (entradas) {
+              entradas.forEach(function (e) {
+                if (e.isIntersecting) tocarIntro();
+                else introVideo.pause();
+              });
+            }, { threshold: 0.25 }).observe(introVisual);
+          }
         } else {
-          introVideo.setAttribute('controls', '');
+          /* Sem vídeo por escolha da pessoa: fica o poster e o botão, que
+             passa a ser a única porta de entrada do download. */
+          marcarBloqueado();
+        }
+
+        if (introPlay) {
+          introPlay.addEventListener('click', function (e) {
+            e.preventDefault();
+            marcarTocando();
+            tocarVideo(introVideo, marcarBloqueado, marcarTocando);
+          });
         }
       }
 
