@@ -476,45 +476,6 @@
       object-fit: cover;
     }
 
-    /* So entra quando o navegador recusa o autoplay (iOS em baixo consumo,
-       Safari com autoplay desligado, webview do Instagram). Antes disso a
-       pessoa ficava olhando um poster parado, sem sinal de que ali tem video. */
-    .intro__play {
-      position: absolute;
-      inset: 0;
-      z-index: 3;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      width: 100%;
-      padding: 0;
-      border: 0;
-      background: rgba(14, 13, 8, 0.38);
-      color: var(--paper);
-      font-family: var(--font-mono);
-      font-size: 0.68rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      cursor: pointer;
-    }
-
-    .intro__visual.is-blocked .intro__play {
-      display: flex;
-    }
-
-    .intro__play .icon {
-      width: 56px;
-      height: 56px;
-      padding: 15px;
-      border-radius: 50%;
-      background: var(--ember);
-      color: var(--paper);
-      stroke: none;
-    }
-
     .intro__tag {
       position: absolute;
       top: 18px;
@@ -1152,6 +1113,313 @@
     }
 
     /* ---------- Prova: página real do material ---------- */
+    /* ---------- Conversas reais ---------- */
+    /* O carrossel da página de vendas, trazido pro fundo escuro do resultado:
+       lá ele vive sobre papel claro. A fração quebrada (2,6 por tela; 74% no
+       celular) deixa o próximo print aparecendo na borda, pra indicar que
+       continua. O trilho sangra até a borda pelo padding lateral. */
+    .social__note {
+      margin: 6px 0 0;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: rgba(236, 231, 222, 0.5);
+    }
+
+    .social__track {
+      --social-gap: clamp(14px, 2.4vw, 22px);
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: calc((100% - 2 * var(--social-gap)) / 2.6);
+      gap: var(--social-gap);
+      margin: clamp(20px, 3vw, 28px) calc(-1 * var(--pad-inline)) 0;
+      padding: 0 var(--pad-inline) 8px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      scroll-padding-inline: var(--pad-inline);
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+    }
+
+    .social__track::-webkit-scrollbar {
+      display: none;
+    }
+
+    .social__track:focus-visible {
+      outline: 2px solid var(--ember);
+      outline-offset: 4px;
+    }
+
+    .social__card {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-snap-align: start;
+    }
+
+    /* Linhas reservadas pra citação: as imagens começam na mesma altura mesmo
+       com frases de tamanhos diferentes. */
+    .social__card blockquote {
+      position: relative;
+      margin: 0;
+      padding-top: 18px;
+      min-height: calc(3 * 1.18em + 18px);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.05rem;
+      line-height: 1.18;
+    }
+
+    .social__card blockquote::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 30px;
+      height: 3px;
+      background: var(--ember);
+    }
+
+    /* Os prints têm proporções levemente diferentes; a proporção fixa alinha
+       o fim das imagens e as legendas. O corte, quando há, é só no pé. */
+    .social__shot {
+      display: block;
+      aspect-ratio: 11 / 20;
+      max-width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--ink-2);
+      border: 1px solid var(--line-on-ink);
+      box-shadow: 0 22px 46px rgba(0, 0, 0, 0.45);
+    }
+
+    .social__shot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+    }
+
+    .social__name {
+      display: block;
+      font-weight: 600;
+      font-size: 0.92rem;
+    }
+
+    .social__meta {
+      display: block;
+      margin-top: 5px;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(236, 231, 222, 0.55);
+    }
+
+    .social__nav {
+      display: flex;
+      justify-content: center;
+      margin-top: 16px;
+    }
+
+    .social__dots {
+      display: flex;
+      align-items: center;
+    }
+
+    /* Bolinha pequena, alvo de toque de 44px: a mesma regra dos outros
+       botões da página. */
+    .social__dot {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .social__dot::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(236, 231, 222, 0.28);
+      transition: width 0.25s ease, background 0.25s ease;
+    }
+
+    .social__dot[aria-current="true"]::before {
+      width: 22px;
+      background: var(--ember);
+    }
+
+    .social__swipe {
+      display: none;
+    }
+
+    @keyframes socialNudge {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      50% {
+        transform: translateX(6px);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .social__track {
+        grid-auto-columns: 74%;
+        gap: 14px;
+      }
+
+      .social__swipe {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 10px 0 0;
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ember);
+      }
+
+      .social__swipe span {
+        display: inline-block;
+        animation: socialNudge 1.6s ease-in-out infinite;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .social__track {
+        scroll-behavior: auto;
+      }
+
+      .social__swipe span {
+        animation: none;
+      }
+    }
+
+    /* ---------- Barra de compra (celular) ---------- */
+    /* A mesma da página de vendas. Aparece no resultado depois da primeira
+       rolagem e sai quando os cartões ou o pacote estão na tela — cobrir um
+       botão de compra com outro não faz sentido. */
+    .buybar {
+      display: none;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 95;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+      background: rgba(23, 22, 15, 0.94);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255, 75, 31, 0.3);
+      transform: translateY(105%);
+      transition: transform 0.28s ease;
+    }
+
+    .buybar.is-visible {
+      transform: translateY(0);
+    }
+
+    .buybar__info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .buybar__name {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(236, 231, 222, 0.6);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .buybar__price {
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 1.12rem;
+      line-height: 1.1;
+      color: var(--ember);
+    }
+
+    .buybar__price > span,
+    .buybar__price em {
+      white-space: nowrap;
+    }
+
+    .buybar__price em {
+      font-style: normal;
+      font-size: 0.62rem;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      color: rgba(236, 231, 222, 0.55);
+    }
+
+    .buybar__price em:empty {
+      display: none;
+    }
+
+    .buybar__btn {
+      flex-shrink: 0;
+      padding: 14px 20px;
+      font-size: 0.74rem;
+    }
+
+    @media (max-width: 860px) {
+      .buybar {
+        display: flex;
+      }
+
+      /* O rodapé não termina embaixo da barra. */
+      body.com-buybar .footer {
+        padding-bottom: 92px;
+      }
+    }
+
+    /* Abaixo de ~420px o custo por aula ia parar atrás do botão. Ele já está
+       nos números e no cartão; na barra, o preço basta. */
+    @media (max-width: 420px) {
+      .buybar__price em {
+        display: none;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .buybar {
+        padding-inline: 12px;
+      }
+
+      .buybar__btn {
+        padding: 13px 14px;
+        font-size: 0.68rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .buybar {
+        transition: none;
+      }
+    }
+
     /* ---------- Pacote completo ---------- */
     .bundle {
       margin-top: 18px;
@@ -1870,12 +2138,6 @@
             <source src="assets/videos/q-prova.mp4" type="video/mp4">
             <img src="assets/images/quiz/q-prova.webp" alt="Treino funcional em estações">
           </video>
-          <button class="intro__play" id="introPlay" type="button">
-            <svg class="icon" aria-hidden="true">
-              <use href="#icon-play" />
-            </svg>
-            <span>Ver a cena</span>
-          </button>
           <figcaption class="intro__caption"><span>Sem atores. Sem estúdio.</span></figcaption>
         </figure>
       </div>
@@ -1892,8 +2154,8 @@
           <p class="q__hint">Toque numa opção pra seguir</p>
         </div>
 
-        <!-- Decorativa: o still carrega sempre e o vídeo só entra por cima em
-             tela grande, onde o tráfego não é de dados móveis. -->
+        <!-- Decorativa: o still é o quadro 0 do vídeo da pergunta, então a
+             entrada do vídeo por cima não se vê. -->
         <figure class="qmedia" id="qMedia" aria-hidden="true">
           <img class="qmedia__still" id="qMediaImg" src="assets/images/quiz/q-dupla.webp" alt="">
           <video class="qmedia__video" id="qMediaVideo" muted loop playsinline preload="none"></video>
@@ -2095,6 +2357,64 @@
           </article>
         </div>
 
+        <!-- Prova social: os mesmos prints reais da página de vendas. Vem
+             depois das ofertas, pra quem passou por elas sem decidir — e a
+             barra de compra volta a aparecer aqui embaixo. Os telefones de
+             terceiros no print do grupo foram cobertos na imagem (LGPD): nunca
+             publicar o arquivo original depoimento3.jpeg. -->
+        <div class="res__block">
+          <div class="social">
+            <div class="social__head">
+              <p class="eyebrow">Conversas reais</p>
+              <h3 class="res__h2">O que chegou no direct e no grupo</h3>
+              <p class="social__note">Prints reais de quem comprou · só cobrimos os telefones</p>
+              <p class="social__swipe" aria-hidden="true">Arraste pro lado <span>→</span></p>
+            </div>
+            <div class="social__track" id="socialTrack" tabindex="0" role="region"
+              aria-label="Prints de conversas reais — role para o lado">
+              <figure class="social__card">
+                <blockquote>"A melhora no meu condicionamento, tanto pra musculação quanto pra corrida, foi surreal."</blockquote>
+                <span class="social__shot"><img src="assets/images/prova-leonardo.jpg" width="570" height="1080" loading="lazy"
+                    alt="Print do direct do Instagram: Leonardo, professor, diz que gostou muito das 250 aulas, que ajudou no conhecimento sobre treino híbrido e que a melhora no condicionamento pra musculação e corrida foi surreal. Diz ainda que vai passar ideias pros alunos."></span>
+                <figcaption>
+                  <span class="social__name">Leonardo P.</span>
+                  <span class="social__meta">Professor · Direct do Instagram</span>
+                </figcaption>
+              </figure>
+              <figure class="social__card">
+                <blockquote>"Muito prático e de fácil montagem de treino. Fácil pros alunos compreenderem."</blockquote>
+                <span class="social__shot"><img src="assets/images/prova-laes.jpg" width="621" height="1115" loading="lazy"
+                    alt="Print do direct do Instagram: Laes Douglas responde que adorou o conteúdo, que é muito prático e de fácil montagem de treino, fácil para os alunos compreenderem, e que agora é voar."></span>
+                <figcaption>
+                  <span class="social__name">Laes Douglas</span>
+                  <span class="social__meta">Professor · Direct do Instagram</span>
+                </figcaption>
+              </figure>
+              <figure class="social__card">
+                <blockquote>"Muito bom!!!"</blockquote>
+                <span class="social__shot"><img src="assets/images/prova-rodrigo.jpg" width="621" height="1120" loading="lazy"
+                    alt="Print do direct do Instagram: depois de receber o material, Rodrigo, personal trainer, responde 'Muito bom!!!'."></span>
+                <figcaption>
+                  <span class="social__name">Rodrigo S.</span>
+                  <span class="social__meta">Personal · Direct do Instagram</span>
+                </figcaption>
+              </figure>
+              <figure class="social__card">
+                <blockquote>"Comprei... muito top!"</blockquote>
+                <span class="social__shot"><img src="assets/images/prova-grupo.jpg" width="590" height="1070" loading="lazy"
+                    alt="Print do grupo de alunos no WhatsApp: Saulo Santos escreve 'Comprei... mto toop!' e recebe a resposta 'Fico feliz que tenha gostado'."></span>
+                <figcaption>
+                  <span class="social__name">Saulo Santos</span>
+                  <span class="social__meta">Aluno · Grupo no WhatsApp</span>
+                </figcaption>
+              </figure>
+            </div>
+            <div class="social__nav" id="socialNav" hidden>
+              <div class="social__dots" id="socialDots"></div>
+            </div>
+          </div>
+        </div>
+
         <div class="res__block">
           <figure class="proof" id="proof">
             <div class="proof__frame">
@@ -2145,6 +2465,22 @@
           página.</p>
       </div>
     </noscript>
+
+    <!-- Barra de compra fixa, só no celular e só no resultado. Os dois links
+         ficam no HTML desde o carregamento, como os dos cartões (a UTMify
+         decora os hrefs quando a página abre); o JS mostra só o do produto
+         recomendado. -->
+    <div class="buybar" id="buyBar">
+      <div class="buybar__info">
+        <span class="buybar__name" id="buyBarName"></span>
+        <span class="buybar__price"><span id="buyBarPrice"></span> <em id="buyBarPer"></em></span>
+      </div>
+      <a href="https://pay.wiapy.com/U6bj94wsQRBZ" class="btn btn--primary buybar__btn" data-buybar="aulas" target="_blank"
+        rel="noopener" data-checkout="250 Aulas Prontas" data-sku="250-aulas" data-price="28.80">Quero as aulas</a>
+      <a href="https://pay.wiapy.com/9lM9WBd8VNFt" class="btn btn--primary buybar__btn" data-buybar="mc" target="_blank"
+        rel="noopener" data-checkout="HYROX Master Class" data-sku="master-class" data-price="15.00" hidden>Quero a Master
+        Class</a>
+    </div>
   </main>
 
   <footer class="footer">
@@ -2593,6 +2929,7 @@
           }
         });
         window.scrollTo(0, 0);
+        atualizarBuyBar();
       };
 
       /* ── Navegação ───────────────────────────────────────────────
@@ -2687,7 +3024,7 @@
         fila.forEach(function (fn) { fn(); });
       };
 
-      ['pointerdown', 'touchstart', 'keydown'].forEach(function (ev) {
+      ['pointerdown', 'touchstart', 'keydown', 'scroll'].forEach(function (ev) {
         document.addEventListener(ev, destravarVideos, { passive: true });
       });
       document.addEventListener('visibilitychange', function () {
@@ -2702,8 +3039,15 @@
         video.muted = true;
         video.playsInline = true;
         /* preload="none" deixa o elemento em NETWORK_EMPTY; sem um load()
-           explícito o Safari não busca nada e o play() morre na largada. */
-        if (video.readyState === 0) { try { video.load(); } catch (e) { } }
+           explícito o Safari não busca nada e o play() morre na largada. Mas
+           só uma vez por arquivo: agora cada recusa tenta de novo (fila de
+           gesto, canplay, volta da aba), e um load() num vídeo que já está
+           baixando zera o download e aborta o play() em andamento. */
+        var srcAtual = video.getAttribute('src') || (video.querySelector('source') || { getAttribute: function () { return ''; } }).getAttribute('src');
+        if (video.readyState === 0 && video.__carregado !== srcAtual) {
+          video.__carregado = srcAtual;
+          try { video.load(); } catch (e) { }
+        }
         var p;
         try { p = video.play(); } catch (e) { p = null; }
         if (p && p.then) {
@@ -2733,60 +3077,60 @@
         if (qMediaVideo.getAttribute('src') !== m.video) {
           qMedia.classList.remove('is-playing');
           qMediaVideo.src = m.video;
-          qMediaVideo.load();
         }
         tocarVideo(qMediaVideo);
       };
 
       qMediaVideo.addEventListener('playing', function () { qMedia.classList.add('is-playing'); });
 
-      /* A intro segue a mesma regra. Sem autoplay no HTML, o download só
-         começa neste play() — assim quem está em economia de dados, ou pediu
-         menos movimento, não baixa um byte de vídeo: fica o poster, com o
-         controle pra dar play se quiser. */
+      /* A intro segue o hero atual da página de vendas: sem selo nem botão de
+         play por cima — um botão ali já é o aviso de que o vídeo não saiu. O
+         poster é o quadro 0 do próprio vídeo, então se o navegador recusar
+         fica uma cena real parada, não um player quebrado, e qualquer toque ou
+         rolagem destrava pela fila de gesto. Sem autoplay no HTML, quem está
+         em economia de dados ou pediu menos movimento não baixa um byte. */
       var introVideo = $('introVideo');
       var introVisual = introVideo && introVideo.closest('.intro__visual');
-      var introPlay = $('introPlay');
+      var introNaTela = false;
+      var tocarIntro = function () { if (introVideo && playsVideo()) tocarVideo(introVideo); };
 
-      if (introVideo) {
-        var marcarBloqueado = function () {
-          if (introVisual) introVisual.classList.add('is-blocked');
-        };
-        var marcarTocando = function () {
-          if (introVisual) introVisual.classList.remove('is-blocked');
-        };
-        introVideo.addEventListener('playing', marcarTocando);
-
-        var tocarIntro = function () { tocarVideo(introVideo, marcarBloqueado, marcarTocando); };
-
-        if (playsVideo()) {
-          tocarIntro();
-          /* A tela de abertura pode estar escondida na volta de uma sessão
-             retomada, ou fora da viewport no celular. O observer cuida dos
-             dois: só toca com a peça na tela e pausa quando ela sai, em vez
-             de baixar e rodar vídeo que ninguém está vendo. */
-          if ('IntersectionObserver' in window && introVisual) {
-            new IntersectionObserver(function (entradas) {
-              entradas.forEach(function (e) {
-                if (e.isIntersecting) tocarIntro();
-                else introVideo.pause();
-              });
-            }, { threshold: 0.25 }).observe(introVisual);
-          }
+      if (introVideo && playsVideo()) {
+        if ('IntersectionObserver' in window && introVisual) {
+          /* Só toca com a peça na tela e pausa quando ela sai. No celular ela
+             fica abaixo das opções — quem responde sem rolar nem baixa o
+             vídeo. E pausada fora da tela ela não prende o decodificador: o
+             celular tem limite de vídeos decodificando ao mesmo tempo, e a
+             intro rodando escondida roubava o lugar do vídeo da pergunta. */
+          new IntersectionObserver(function (entradas) {
+            entradas.forEach(function (e) {
+              introNaTela = e.isIntersecting;
+              if (introNaTela) tocarIntro(); else introVideo.pause();
+            });
+          }, { threshold: 0.25 }).observe(introVisual);
         } else {
-          /* Sem vídeo por escolha da pessoa: fica o poster e o botão, que
-             passa a ser a única porta de entrada do download. */
-          marcarBloqueado();
-        }
-
-        if (introPlay) {
-          introPlay.addEventListener('click', function (e) {
-            e.preventDefault();
-            marcarTocando();
-            tocarVideo(introVideo, marcarBloqueado, marcarTocando);
-          });
+          introNaTela = true;
+          tocarIntro();
         }
       }
+
+      /* O primeiro play() de cada pergunta costuma sair com o vídeo ainda sem
+         dados, e no celular é recusado. Cada vez que o vídeo avisa que já dá
+         pra tocar é mais uma chance — mas só com a pergunta na tela. */
+      qMediaVideo.addEventListener('canplay', function () {
+        if (!screens.question.hidden && playsVideo() && qMediaVideo.paused) tocarVideo(qMediaVideo);
+      });
+
+      /* Trocar de app no iPhone pausa o vídeo, e na volta ele ficava num
+         quadro congelado. A fila de gesto não cobre isso: não houve recusa pra
+         enfileirar, foi o sistema que pausou. Só chuta o vídeo que está de fato
+         na tela — fora dela a pausa é de propósito. */
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden || !playsVideo()) return;
+        if (introNaTela && introVideo && introVideo.paused) tocarIntro();
+        if (!screens.question.hidden && qMediaVideo.getAttribute('src') && qMediaVideo.paused) {
+          tocarVideo(qMediaVideo);
+        }
+      });
 
       /* Mesmo construtor pra abertura e pras outras telas: o que muda é só
          onde os botões entram e o que acontece depois do clique. */
@@ -3121,6 +3465,7 @@
         $('proofCaption').textContent = proof.caption;
 
         setupLead(r);
+        prepararBuyBar(r);
 
         $('resProfile').focus({ preventScroll: true });
 
@@ -3160,6 +3505,158 @@
           stack.classList.add('is-in');
         }
       }
+
+      /* ── Barra de compra (celular) ────────────────────────────────────
+         No celular a primeira oferta só aparece na terceira tela do
+         resultado, depois do perfil, dos números e do "o que resolve": até
+         lá não havia botão de compra à vista. A barra oferece o produto
+         recomendado e sai quando os cartões ou o pacote estão na tela. */
+      var buyBar = $('buyBar');
+      var zonaDeCompraNaTela = false;
+
+      var atualizarBuyBar = function () {
+        if (!buyBar) return;
+        var noResultado = !screens.result.hidden;
+        var mostrar = noResultado && window.pageYOffset > 120 && !zonaDeCompraNaTela &&
+          !document.body.classList.contains('flash-open');
+        document.body.classList.toggle('com-buybar', noResultado);
+        buyBar.classList.toggle('is-visible', mostrar);
+        /* Escondida fora da tela, mas ainda no DOM: sem o inert os links dela
+           seguiriam recebendo foco pelo teclado. */
+        buyBar.inert = !mostrar;
+      };
+
+      var prepararBuyBar = function (r) {
+        if (!buyBar) return;
+        var card = r.rec === 'aulas' ? $('cardAulas') : $('cardMc');
+        Array.prototype.forEach.call(buyBar.querySelectorAll('[data-buybar]'), function (a) {
+          a.hidden = a.getAttribute('data-buybar') !== r.rec;
+        });
+        /* Nome e preço saem do próprio cartão: se o preço mudar lá, a barra
+           acompanha sem ninguém precisar lembrar dela. */
+        $('buyBarName').textContent = card.querySelector('.card__title').textContent;
+        $('buyBarPrice').textContent = card.querySelector('.amount').textContent;
+        var termos = card.querySelector('.terms').textContent.split('·');
+        /* "≈ R$ 0,12 por aula" vira "≈ R$ 0,12/aula", o formato curto da página
+           de vendas: ao lado do preço e do botão, a versão longa não cabe. */
+        $('buyBarPer').textContent = termos.length > 1
+          ? termos[termos.length - 1].replace(/\s+/g, ' ').trim().replace(/ por (aula|treino)$/, '/$1')
+          : '';
+        atualizarBuyBar();
+      };
+
+      if (buyBar) {
+        var zonasDeCompra = [$('offers'), document.querySelector('.bundle')].filter(Boolean);
+        if ('IntersectionObserver' in window) {
+          var zonaIo = new IntersectionObserver(function (entradas) {
+            entradas.forEach(function (e) { e.target.__naTela = e.isIntersecting; });
+            zonaDeCompraNaTela = zonasDeCompra.some(function (z) { return z.__naTela; });
+            atualizarBuyBar();
+          }, { threshold: 0 });
+          zonasDeCompra.forEach(function (z) { zonaIo.observe(z); });
+        }
+        /* O modal relâmpago marca o body: um observer avisa a barra sem
+           espalhar chamadas por cada handler dele. */
+        if ('MutationObserver' in window) {
+          new MutationObserver(atualizarBuyBar)
+            .observe(document.body, { attributes: true, attributeFilter: ['class'] });
+        }
+        window.addEventListener('scroll', atualizarBuyBar, { passive: true });
+        window.addEventListener('resize', atualizarBuyBar);
+      }
+
+      /* ── Conversas reais (carrossel) ──────────────────────────────────
+         O mesmo carrossel da página de vendas: uma parada por print, e as
+         bolinhas (e as setas do teclado) levam direto a ela com scrollTo, que
+         convive melhor com o scroll-snap do celular. Aqui ele mora dentro da
+         tela de resultado, que começa escondida — com tudo em largura zero as
+         paradas sairiam erradas. Por isso ele se monta quando entra na tela,
+         e de novo a cada redimensionamento. */
+      (function () {
+        var track = $('socialTrack');
+        var nav = $('socialNav');
+        var dotsWrap = $('socialDots');
+        if (!track || !nav || !dotsWrap) return;
+        var items = Array.prototype.slice.call(track.children);
+        var stops = [];
+        var dots = [];
+        var pending = null;
+        var pendingTimer = 0;
+
+        var maxScroll = function () { return track.scrollWidth - track.clientWidth; };
+
+        var nearest = function () {
+          var x = track.scrollLeft, best = 0, dist = Infinity;
+          stops.forEach(function (pos, i) {
+            var d = Math.abs(pos - x);
+            if (d < dist) { dist = d; best = i; }
+          });
+          return best;
+        };
+
+        var current = function () { return pending !== null ? pending : nearest(); };
+
+        var update = function () {
+          var i = current();
+          dots.forEach(function (dot, k) { dot.setAttribute('aria-current', k === i ? 'true' : 'false'); });
+        };
+
+        var settle = function () { pending = null; update(); };
+
+        var goTo = function (i) {
+          i = Math.max(0, Math.min(i, stops.length - 1));
+          pending = i;
+          track.scrollTo({ left: stops[i], behavior: reduceMotion ? 'auto' : 'smooth' });
+          update();
+          clearTimeout(pendingTimer);
+          pendingTimer = setTimeout(settle, reduceMotion ? 50 : 600);
+        };
+
+        var build = function () {
+          var max = maxScroll();
+          stops = [];
+          items.forEach(function (item) {
+            var pos = Math.min(item.offsetLeft - items[0].offsetLeft, max);
+            if (!stops.length || pos - stops[stops.length - 1] > 2) stops.push(pos);
+          });
+          dotsWrap.textContent = '';
+          dots = stops.map(function (pos, i) {
+            var dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'social__dot';
+            dot.setAttribute('aria-label', 'Ir para a posição ' + (i + 1) + ' de ' + stops.length);
+            dot.addEventListener('click', function () { goTo(i); });
+            dotsWrap.appendChild(dot);
+            return dot;
+          });
+          nav.hidden = max <= 2;
+          update();
+        };
+
+        track.addEventListener('keydown', function (e) {
+          if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(current() - 1); }
+          if (e.key === 'ArrowRight') { e.preventDefault(); goTo(current() + 1); }
+        });
+        /* No arrasto com o dedo não há destino pendente: o índice sai da
+           posição real. */
+        track.addEventListener('scroll', function () { if (pending === null) update(); }, { passive: true });
+        track.addEventListener('scrollend', settle);
+        track.addEventListener('touchstart', function () { pending = null; }, { passive: true });
+
+        var resizeTimer = 0;
+        window.addEventListener('resize', function () {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(build, 150);
+        });
+
+        if ('IntersectionObserver' in window) {
+          new IntersectionObserver(function (entradas) {
+            entradas.forEach(function (e) { if (e.isIntersecting) build(); });
+          }, { threshold: 0 }).observe(track);
+        } else {
+          build();
+        }
+      })();
 
       $('proofToggle').addEventListener('click', function () {
         var open = $('proof').classList.toggle('is-open');
