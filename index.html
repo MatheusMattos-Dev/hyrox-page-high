@@ -1113,6 +1113,41 @@
     }
 
     /* ---------- Prova: página real do material ---------- */
+    .intro__proof {
+      margin: 18px 0 0;
+      padding-left: 14px;
+      border-left: 2px solid var(--ember);
+      max-width: 46ch;
+    }
+
+    .intro__proof blockquote {
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      color: rgba(236, 231, 222, 0.82);
+    }
+
+    .intro__proof figcaption {
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(236, 231, 222, 0.45);
+    }
+
+    .res__quicklead {
+      margin: 14px 0 0;
+    }
+
+    .linkbtn--lead {
+      color: var(--rope);
+      text-transform: none;
+      letter-spacing: 0.01em;
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+    }
+
     /* ---------- Conversas reais ---------- */
     /* O carrossel da página de vendas, trazido pro fundo escuro do resultado:
        lá ele vive sobre papel claro. A fração quebrada (2,6 por tela; 74% no
@@ -2130,6 +2165,15 @@
           <h2 class="intro__q" id="introTitle" tabindex="-1">Você dá aula ou você treina?</h2>
           <div class="opts opts--intro" id="introOpts" role="group" aria-labelledby="introTitle"></div>
           <p class="intro__meta">Grátis · Sem cadastro · Resultado na hora</p>
+
+          <!-- Prova real na abertura: quem cai aqui vindo do anúncio não
+               conhece ninguém. É o mesmo print que aparece inteiro lá no
+               resultado, e a frase serve pros dois públicos. -->
+          <figure class="intro__proof">
+            <blockquote>“A melhora no meu condicionamento, tanto pra musculação quanto pra corrida, foi
+              surreal.”</blockquote>
+            <figcaption>Leonardo P. · professor · direct do Instagram</figcaption>
+          </figure>
         </div>
         <figure class="intro__visual">
           <span class="intro__tag"><span class="dot"></span>Cena real de aula</span>
@@ -2170,16 +2214,19 @@
         <p class="eyebrow">Quase lá</p>
         <h2 class="q__title" id="loadTitle" tabindex="-1">Montando o seu resultado</h2>
         <ul class="load__list" id="loadList">
+          <!-- Os textos são escritos pelo JS com as respostas da própria
+               pessoa (por isso sem data-alt aqui: a troca de público
+               sobrescreveria). Os de baixo são só o que aparece se o JS não
+               chegar a rodar. -->
           <li class="load__item"><span class="load__mark"><svg class="icon">
                 <use href="#icon-check" />
-              </svg></span><span data-alt="Somando o tempo que some antes do treino">Somando suas horas de
-            planejamento</span></li>
+              </svg></span><span id="loadTxt1">Somando o seu tempo</span></li>
           <li class="load__item"><span class="load__mark"><svg class="icon">
                 <use href="#icon-check" />
-              </svg></span>Identificando o seu perfil</li>
+              </svg></span><span id="loadTxt2">Identificando o seu perfil</span></li>
           <li class="load__item"><span class="load__mark"><svg class="icon">
                 <use href="#icon-check" />
-              </svg></span>Cruzando com o conteúdo dos materiais</li>
+              </svg></span><span id="loadTxt3">Escolhendo o material pro seu caso</span></li>
         </ul>
       </div>
     </section>
@@ -2195,6 +2242,16 @@
         <p class="res__diag" id="resDiag"></p>
 
         <div class="stats" id="resStats"></div>
+
+        <!-- A aula grátis só existia no rodapé do resultado, depois de tudo.
+             Aqui ela vira uma saída de baixo compromisso pra quem não vai
+             comprar agora — o mesmo link do WhatsApp lá de baixo, com o mesmo
+             rastreio. -->
+        <p class="res__quicklead" id="leadQuickWrap" hidden>
+          <button type="button" class="linkbtn linkbtn--lead" id="leadQuick"
+            data-alt="Prefere testar antes? Receba um treino grátis no WhatsApp →">Prefere testar antes? Receba uma
+            aula grátis no WhatsApp →</button>
+        </p>
 
         <div class="res__block">
           <p class="eyebrow">Pelas suas respostas</p>
@@ -3189,7 +3246,9 @@
         qCount.textContent = pad(num) + ' / ' + pad(total);
         qFill.style.width = ((num - 1) / total * 100) + '%';
 
-        $('qNum').textContent = 'Pergunta ' + pad(num);
+        /* Na última, dizer que é a última: é onde a pessoa mais desiste, e
+           faltando uma ela quase sempre termina. */
+        $('qNum').textContent = num === total ? 'Última pergunta' : 'Pergunta ' + pad(num);
         $('qTitle').textContent = q.title;
         var help = $('qHelp');
         help.textContent = q.help || '';
@@ -3274,10 +3333,46 @@
 
       /* ── Carregando ──────────────────────────────────────────────── */
       var loadTimers = [];
+      /* A espera é o único momento em que dá pra mostrar que o resultado é
+         daquela pessoa e não um texto igual pra todo mundo: cada linha repete
+         uma resposta que ela acabou de dar. */
+      var rotuloDe = function (id) {
+        var q = QUESTIONS.filter(function (x) { return x.id === id; })[0];
+        var escolha = answer(id);
+        if (!q || !escolha) return '';
+        var opt = q.options.filter(function (o) { return o.id === escolha; })[0];
+        return opt ? opt.label : '';
+      };
+
+      var minuscula = function (t) { return t ? t.charAt(0).toLowerCase() + t.slice(1) : ''; };
+
+      var textosDoCarregando = function () {
+        var aluno = audience() === 'aluno';
+        var tempo = rotuloDe(aluno ? 'tempoA' : 'horas');
+        var jeito = rotuloDe(aluno ? 'jeito' : 'metodo');
+        /* Duas respostas não são um "jeito de montar o treino" e ficariam
+           tortas na frase ("como você decide o treino: parei de treinar"). */
+        var linhaDoJeito = answer('jeito') === 'parei' ? 'Anotado: você está voltando a treinar'
+          : answer('metodo') === 'comecando' ? 'Anotado: você ainda não dá aula'
+            : jeito ? (aluno ? 'Lendo como você decide o treino: ' : 'Lendo como você monta a aula: ') + minuscula(jeito)
+              : 'Identificando o seu perfil';
+        return [
+          tempo
+            ? 'Somando o seu tempo: ' + minuscula(tempo) + ' por semana'
+            : (aluno ? 'Somando o tempo que some antes do treino' : 'Somando suas horas de planejamento'),
+          linhaDoJeito,
+          'Escolhendo o material pro seu caso'
+        ];
+      };
+
       var runLoading = function () {
         loadTimers.forEach(clearTimeout);
         loadTimers = [];
         var items = $('loadList').children;
+        textosDoCarregando().forEach(function (txt, i) {
+          var el = $('loadTxt' + (i + 1));
+          if (el) el.textContent = txt;
+        });
         Array.prototype.forEach.call(items, function (li) { li.classList.remove('is-done'); });
         $('loadTitle').focus({ preventScroll: true });
 
@@ -3683,7 +3778,14 @@
           leadLink.href = href;
         }
         $('leadBlock').hidden = false;
+        $('leadQuickWrap').hidden = false;
       };
+
+      /* O atalho reaproveita o próprio link de baixo em vez de duplicá-lo: é
+         o mesmo href (já decorado pela UTMify), o mesmo evento de Lead e a
+         mesma folga de 200ms antes de sair da página. */
+      var leadQuick = $('leadQuick');
+      if (leadQuick) leadQuick.addEventListener('click', function () { leadLink.click(); });
 
       if (sameTabCheckout) leadLink.removeAttribute('target');
       leadLink.addEventListener('click', function (e) {
