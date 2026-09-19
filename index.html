@@ -445,13 +445,23 @@
       border-radius: 8px;
       overflow: hidden;
       /* No formato exato do vídeo (9:16): ele aparece inteiro, sem zoom nem
-         corte nas bordas. 360px de largura dão 640px de altura no desktop. */
+         corte nas bordas. 390px de largura dão ~693px de altura no desktop. */
       aspect-ratio: 9 / 16;
-      width: min(100%, 360px);
+      width: min(100%, 390px);
       margin-inline: auto;
       background: var(--ink-2);
       border: 1px solid rgba(255, 75, 31, 0.35);
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 35px rgba(255, 75, 31, 0.2);
+    }
+
+    /* No celular o vídeo avança 12px sobre a margem de cada lado: sem isso
+       ele já batia na largura útil e não tinha como crescer. */
+    @media (max-width: 899px) {
+      .intro__visual {
+        justify-self: center;
+        width: min(calc(100% + 24px), 390px);
+        margin-inline: -12px;
+      }
     }
 
     .intro__visual::before {
