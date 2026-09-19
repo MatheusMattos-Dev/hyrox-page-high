@@ -444,8 +444,11 @@
       margin: 0;
       border-radius: 8px;
       overflow: hidden;
-      aspect-ratio: 16 / 10;
-      max-width: 100%;
+      /* No formato exato do vídeo (9:16): ele aparece inteiro, sem zoom nem
+         corte nas bordas. 360px de largura dão 640px de altura no desktop. */
+      aspect-ratio: 9 / 16;
+      width: min(100%, 360px);
+      margin-inline: auto;
       background: var(--ink-2);
       border: 1px solid rgba(255, 75, 31, 0.35);
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 35px rgba(255, 75, 31, 0.2);
@@ -462,12 +465,6 @@
       z-index: 2;
     }
 
-    @media (min-width: 900px) {
-      .intro__visual {
-        aspect-ratio: 4 / 5;
-      }
-    }
-
     .intro__visual img,
     .intro__visual video {
       display: block;
@@ -475,6 +472,57 @@
       height: 100%;
       object-fit: cover;
     }
+
+    /* O vídeo é vertical e de gente falando: no recorte 16:10 do desktop o
+       centro cortaria o rosto, então o enquadramento sobe. */
+    .intro__visual video {
+      object-position: 50% 22%;
+    }
+
+    /* Botão de som dentro do quadro, no canto superior direito. */
+    .intro__sound {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 999px;
+      background: rgba(23, 22, 15, 0.72);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background-color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .intro__sound:hover {
+      background: var(--ember);
+      border-color: var(--ember);
+    }
+
+    .intro__sound .icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .intro__sound .icon--off,
+    .intro__sound[aria-pressed="true"] .icon--on {
+      display: none;
+    }
+
+    .intro__sound[aria-pressed="true"] .icon--off {
+      display: block;
+    }
+
 
     .intro__tag {
       position: absolute;
@@ -2176,13 +2224,21 @@
           </figure>
         </div>
         <figure class="intro__visual">
-          <span class="intro__tag"><span class="dot"></span>Cena real de aula</span>
           <video id="introVideo" loop muted playsinline preload="none"
-            poster="assets/images/quiz/q-prova.webp" aria-label="Treino funcional em estações no formato HYROX">
-            <source src="assets/videos/q-prova.mp4" type="video/mp4">
-            <img src="assets/images/quiz/q-prova.webp" alt="Treino funcional em estações">
+            poster="assets/images/quiz/hero-treino.webp" aria-label="Apresentação do treino no formato HYROX">
+            <source src="assets/videos/hero-treino.mp4" type="video/mp4">
+            <img src="assets/images/quiz/hero-treino.webp" alt="Apresentação do treino">
           </video>
-          <figcaption class="intro__caption"><span>Sem atores. Sem estúdio.</span></figcaption>
+          <button type="button" class="intro__sound" id="introSound" aria-pressed="false"
+            aria-label="Ativar som do vídeo">
+            <svg class="icon icon--on">
+              <use href="#icon-sound-off" />
+            </svg>
+            <svg class="icon icon--off">
+              <use href="#icon-sound-on" />
+            </svg>
+            <span class="intro__sound-label">Ativar som</span>
+          </button>
         </figure>
       </div>
     </section>
@@ -3093,7 +3149,7 @@
         if (!video.getAttribute('src') && !video.querySelector('source')) return;
         /* A propriedade, e não só o atributo: o Safari só aceita autoplay
            quando muted está marcado no objeto na hora do play(). */
-        video.muted = true;
+        if (!video.__comSom) video.muted = true;
         video.playsInline = true;
         /* preload="none" deixa o elemento em NETWORK_EMPTY; sem um load()
            explícito o Safari não busca nada e o play() morre na largada. Mas
@@ -3149,7 +3205,17 @@
       var introVideo = $('introVideo');
       var introVisual = introVideo && introVideo.closest('.intro__visual');
       var introNaTela = false;
-      var tocarIntro = function () { if (introVideo && playsVideo()) tocarVideo(introVideo); };
+      /* A intro tenta tocar com som (ver o botão de som abaixo). Se o
+         navegador recusar, cai pro mudo na hora, sem esperar gesto. */
+      var tocarIntro = function () {
+        if (!introVideo || !playsVideo()) return;
+        tocarVideo(introVideo, function () {
+          if (introVideo.__comSom && setIntroSound) {
+            setIntroSound(false);
+            tocarVideo(introVideo);
+          }
+        });
+      };
 
       if (introVideo && playsVideo()) {
         if ('IntersectionObserver' in window && introVisual) {
@@ -3167,6 +3233,82 @@
         } else {
           introNaTela = true;
           tocarIntro();
+        }
+      }
+
+      /* O vídeo da intro é alguém falando, então ele tenta sair com som. Os
+         navegadores de celular (e o do Instagram, de onde vem o anúncio) só
+         liberam som depois de um toque na página: quando recusam, o vídeo
+         segue mudo e o primeiro toque em qualquer lugar liga o som e volta a
+         fala pro começo. Com som ligado o tocarVideo não remuta — senão o
+         próximo chute (volta da aba, fila de gesto) apagaria o áudio. Ao sair
+         da tela volta a ficar mudo; se a pessoa desligar no botão, nenhum
+         toque religa. */
+      var introSound = $('introSound');
+      var setIntroSound = null;
+      if (introVideo && introSound) {
+        var introSoundLabel = introSound.querySelector('.intro__sound-label');
+        setIntroSound = function (on) {
+          introVideo.__comSom = on;
+          introVideo.muted = !on;
+          introSound.setAttribute('aria-pressed', String(on));
+          introSound.setAttribute('aria-label', on ? 'Desativar som do vídeo' : 'Ativar som do vídeo');
+          if (introSoundLabel) introSoundLabel.textContent = on ? 'Desativar som' : 'Ativar som';
+        };
+
+        /* Liga o som e só depois de o navegador aceitar volta pro começo —
+           uma recusa não pode reiniciar o vídeo mudo a cada toque. */
+        var introComSom = function () {
+          setIntroSound(true);
+          if (introVideo.readyState === 0) { try { introVideo.load(); } catch (e) { } }
+          var p = introVideo.play();
+          if (p && p.then) {
+            p.then(function () {
+              try { introVideo.currentTime = 0; } catch (e) { }
+            }, function () {
+              setIntroSound(false);
+              if (introNaTela) tocarIntro();
+            });
+          }
+          return p;
+        };
+
+        var gestosDeSom = ['pointerup', 'touchend', 'keydown', 'click'];
+        var desarmarSomIntro = function () {
+          gestosDeSom.forEach(function (ev) { document.removeEventListener(ev, somIntroNoGesto, true); });
+        };
+        var somIntroNoGesto = function (e) {
+          if (!introNaTela || !introVideo.muted || introVideo.paused) return;
+          /* O botão de som tem o próprio clique; as respostas da intro trocam
+             de tela, e o som ligaria só pra ser cortado em seguida. */
+          if (e.target && e.target.closest && e.target.closest('#introSound, #introOpts')) return;
+          /* Toque que virou rolagem não libera som: nem tenta. */
+          if (navigator.userActivation && !navigator.userActivation.isActive) return;
+          var p = introComSom();
+          if (p && p.then) p.then(desarmarSomIntro, function () { }); else desarmarSomIntro();
+        };
+        gestosDeSom.forEach(function (ev) { document.addEventListener(ev, somIntroNoGesto, true); });
+
+        /* Primeira tentativa já com som: o tocarIntro (disparado quando a
+           peça entra na tela) respeita o __comSom. */
+        if (playsVideo() && introVideo.paused) setIntroSound(true);
+
+        introSound.addEventListener('click', function () {
+          desarmarSomIntro();
+          if (introVideo.muted) introComSom(); else setIntroSound(false);
+        });
+        /* Com playsVideo() o observador de cima já pausa a peça fora da tela
+           (e ela volta tentando com som). Sem ele, o vídeo só roda porque a
+           pessoa clicou no botão — aí quem pausa e silencia é este. */
+        if ('IntersectionObserver' in window && introVisual) {
+          new IntersectionObserver(function (entradas) {
+            entradas.forEach(function (e) {
+              if (!e.isIntersecting && introVideo.__comSom && !introVideo.paused) {
+                setIntroSound(false);
+                if (!playsVideo()) introVideo.pause();
+              }
+            });
+          }, { threshold: 0.25 }).observe(introVisual);
         }
       }
 
